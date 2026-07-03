@@ -1,0 +1,11 @@
+import { RegulationEntity, RegulationStatus } from '../entities/regulation.entity';
+
+export const IRegulationRepository = Symbol('IRegulationRepository');
+
+export interface IRegulationRepository {
+  create(regulation: RegulationEntity): Promise<RegulationEntity>;
+  findAllByInstitution(institutionId: string, status?: RegulationStatus): Promise<RegulationEntity[]>;
+  findById(id: string): Promise<RegulationEntity | null>;
+  updateStatus(id: string, status: RegulationStatus): Promise<RegulationEntity>;
+  delete(id: string): Promise<void>;
+}

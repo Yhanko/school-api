@@ -1,0 +1,14 @@
+import { PrismaService } from './prisma/prisma.service';
+export declare class AppService {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    getHello(): string;
+    getActiveBroadcasts(): Promise<{
+        message: string;
+        id: string;
+        type: string;
+        active: boolean;
+        createdAt: Date;
+        expiresAt: Date | null;
+    }[]>;
+}
