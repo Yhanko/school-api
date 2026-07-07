@@ -14,6 +14,10 @@ export class CreateSchoolDto {
   schoolAddress?: string;
 
   @IsString()
+  @IsOptional()
+  schoolPhone?: string;
+
+  @IsString()
   @IsNotEmpty()
   adminName: string;
 

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Delete, UseGuards, Query, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, UseGuards, Query, Body, Param, Req } from '@nestjs/common';
 import { SuperAdminService } from './super-admin.service';
 import { SuperAdminFeaturesService } from './super-admin-features.service';
 import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
@@ -23,8 +23,10 @@ export class SuperAdminController {
   @Post('schools')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
-  async createSchool(@Body() dto: any) {
-    return this.superAdminService.createSchool(dto);
+  async createSchool(@Body() dto: any, @Req() req: any) {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userId = req.user?.id || req.user?.sub;
+    return this.superAdminService.createSchool(dto, userId, ipAddress);
   }
 
   @Get('schools')
@@ -67,6 +69,13 @@ export class SuperAdminController {
   @Roles(Role.SUPER_ADMIN)
   async getPlatforms() {
     return this.superAdminService.getPlatforms();
+  }
+
+  @Get('system-health')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async getSystemHealth() {
+    return this.superAdminService.getSystemHealth();
   }
 
   @Post('broadcasts')

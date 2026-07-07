@@ -3,10 +3,12 @@
 
 generator client {
   provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Institution {
@@ -419,6 +421,7 @@ model Plan {
   price       Float
   maxStudents Int? // null means unlimited
   maxTeachers Int?
+  maxParents  Int?
   maxStaff    Int?
   features    String[]
 

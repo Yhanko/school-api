@@ -1,0 +1,1 @@
+﻿const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); prisma.institution.findMany({orderBy:{createdAt:'desc'}, take:1}).then(console.log).finally(() => prisma.$disconnect());

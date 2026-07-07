@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSchoolDto } from '../presentation/dtos/create-school.dto';
 import { Role } from '../domain/entities/user.entity';
@@ -8,10 +8,10 @@ import { IHashService } from '../application/interfaces/hash.service.interface';
 export class SuperAdminService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly hashService: IHashService,
+    @Inject(IHashService) private readonly hashService: IHashService,
   ) {}
 
-  async createSchool(dto: CreateSchoolDto) {
+  async createSchool(dto: CreateSchoolDto, adminId?: string, ipAddress?: string) {
     // 1. Check if admin email is taken
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.adminEmail },
@@ -29,6 +29,7 @@ export class SuperAdminService {
           name: dto.schoolName,
           email: dto.schoolEmail,
           address: dto.schoolAddress,
+          phone: dto.schoolPhone,
         },
       });
 
@@ -46,10 +47,20 @@ export class SuperAdminService {
       const endDate = new Date();
       endDate.setFullYear(endDate.getFullYear() + 1);
 
+      let plan = await tx.plan.findFirst({ where: { name: dto.planId } });
+      if (!plan) {
+        plan = await tx.plan.findUnique({ where: { id: dto.planId } }).catch(() => null as any);
+      }
+      if (!plan) {
+        plan = await tx.plan.create({
+          data: { name: dto.planId || 'basic', price: 0, features: [] }
+        });
+      }
+
       const subscription = await tx.subscription.create({
         data: {
           institutionId: institution.id,
-          planId: dto.planId,
+          planId: plan.id,
           endDate,
           status: 'active',
         },
@@ -64,8 +75,7 @@ export class SuperAdminService {
         data: defaultSubjects.map(name => ({
           name,
           code: name.substring(0, 3).toUpperCase(),
-          institutionId: institution.id,
-          description: `Disciplina padrão de ${name}`
+          institutionId: institution.id
         }))
       });
 
@@ -78,6 +88,8 @@ export class SuperAdminService {
           resource: 'Institution',
           details: `School ${institution.name} and admin ${admin.email} created.`,
           institutionId: institution.id,
+          userId: adminId,
+          ipAddress: ipAddress || '127.0.0.1',
         },
       });
 
@@ -112,20 +124,27 @@ export class SuperAdminService {
           role: { in: [Role.SECRETARY, Role.ADMIN] } 
         } 
       });
+      const admin = await this.prisma.user.findFirst({
+        where: { institutionId: inst.id, role: Role.ADMIN }
+      });
 
       return {
         id: inst.id,
         name: inst.name,
+        code: `ESC${inst.id.substring(0, 4).toUpperCase()}`,
         email: inst.email,
+        phone: inst.phone || null,
         address: inst.address,
         createdAt: inst.createdAt,
         totalUsers: inst._count.users,
-        max_students: studentsCount, // mapped to current active for now
-        max_teachers: teachersCount,
-        max_staff: staffCount,
+        studentsCount,
+        teachersCount,
+        staffCount,
+        director: admin?.name || 'N/A',
         subscription_plan: inst.subscriptions[0]?.plan?.name || 'free',
         subscription_expires_at: inst.subscriptions[0]?.endDate,
         status: inst.subscriptions[0]?.status || 'inactive',
+        monthlyRevenue: inst.subscriptions[0]?.plan?.price || 0,
       };
     }));
   }
@@ -263,6 +282,29 @@ export class SuperAdminService {
         healthStatus
       };
     });
+  }
+
+  async getSystemHealth() {
+    let dbStatus = 'healthy';
+    let dbLatency = 0;
+    try {
+      const start = Date.now();
+      await this.prisma.$queryRaw`SELECT 1`;
+      dbLatency = Date.now() - start;
+    } catch (e) {
+      dbStatus = 'down';
+    }
+
+    return {
+      database: {
+        status: dbStatus,
+        latency: dbLatency,
+      },
+      api: {
+        status: 'healthy',
+        uptime: process.uptime(),
+      }
+    };
   }
 }
 

@@ -1,10 +1,12 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
   TEACHER = 'TEACHER',
   STUDENT = 'STUDENT',
   PARENT = 'PARENT',
+  SECRETARY = 'SECRETARY',
 }
 
 export class CreateUserDto {
