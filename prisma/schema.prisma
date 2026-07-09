@@ -39,6 +39,9 @@ model Institution {
   platforms           Platform[]
   supportTickets      SupportTicket[]
   academicYears       AcademicYear[]
+  lessonSummaries     LessonSummary[]
+  lessonPlans         LessonPlan[]
+  exams               Exam[]
 }
 
 model User {
@@ -63,6 +66,9 @@ model User {
 
   studentAttendance Attendance[] @relation("StudentAttendance")
   teacherAttendance Attendance[] @relation("TeacherAttendance")
+  teacherLessonSummaries LessonSummary[] @relation("TeacherLessonSummaries")
+  teacherLessonPlans LessonPlan[] @relation("TeacherLessonPlans")
+  teacherExams Exam[] @relation("TeacherExams")
 
   documentRequests DocumentRequest[] @relation("StudentDocuments")
 
@@ -80,6 +86,7 @@ model User {
   supportMessages SupportMessage[] @relation("MessageSender")
   schedules       Schedule[]
   activityLogs    ActivityLog[]    @relation("UserLogs")
+  resourcesCreated Resource[]      @relation("ResourceAuthor")
 
   disciplinaryRecords DisciplinaryRecord[] @relation("StudentDisciplinary")
   reportedIncidents   DisciplinaryRecord[] @relation("ReporterDisciplinary")
@@ -149,6 +156,10 @@ model Class {
   grades      Grade[]
   attendances Attendance[]
   schedules   Schedule[]
+  resources   Resource[]
+  lessonSummaries LessonSummary[]
+  lessonPlans LessonPlan[]
+  exams Exam[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -170,6 +181,10 @@ model Subject {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   schedules Schedule[]
+  resources Resource[]
+  lessonSummaries LessonSummary[]
+  lessonPlans LessonPlan[]
+  exams Exam[]
 }
 
 model ClassSubject {
@@ -237,6 +252,7 @@ model Grade {
   class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   term  String // 'first', 'second', 'third', 'final'
+  type  String @default("PT") // 'AC', 'CPP', 'PT', 'MT'
   value Float
 
   teacherId String
@@ -556,10 +572,18 @@ model Resource {
   description String?
   type        String   // 'pdf', 'video', 'link', 'book'
   url         String
-  subject     String?
 
   institutionId String
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation("ResourceAuthor", fields: [authorId], references: [id])
+
+  classId String?
+  class   Class?  @relation(fields: [classId], references: [id])
+
+  subjectId String?
+  subject   Subject? @relation(fields: [subjectId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -600,4 +624,103 @@ model Enrollment {
   updatedAt      DateTime     @updatedAt
 
   @@unique([studentId, academicYearId])
+}
+
+model LessonSummary {
+  id        String @id @default(uuid())
+  classId   String
+  class     Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  teacherId String
+  teacher   User   @relation("TeacherLessonSummaries", fields: [teacherId], references: [id])
+
+  date      DateTime
+  content   String @db.Text
+
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LessonPlan {
+  id        String @id @default(uuid())
+  classId   String
+  class     Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  teacherId String
+  teacher   User   @relation("TeacherLessonPlans", fields: [teacherId], references: [id])
+
+  date      DateTime
+  duration  String
+  theme     String
+
+  generalObjective    String @db.Text
+  educationalObjective String? @db.Text
+  specificCognitive   String @db.Text
+  specificPsychomotor String @db.Text
+  specificAffective   String @db.Text
+
+  teachingMethods     String? @db.Text
+  teachingResources   String? @db.Text
+  activities          String? @db.Text
+
+  introMotivation       String @db.Text
+  mediationAssimilation String @db.Text
+  domainConsolidation   String @db.Text
+  controlEvaluation     String @db.Text
+
+  status              String @default("PENDING") // PENDING, APPROVED, REJECTED
+  coordinatorFeedback String? @db.Text
+
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Exam {
+  id           String @id @default(uuid())
+  title        String
+  term         String
+  instructions String @db.Text
+  totalScore   Float  @default(20)
+  
+  classId   String
+  class     Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  teacherId String
+  teacher   User   @relation("TeacherExams", fields: [teacherId], references: [id])
+
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  questions ExamQuestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ExamQuestion {
+  id          String @id @default(uuid())
+  examId      String
+  exam        Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  text        String @db.Text
+  score       Float
+  blankLines  Int    @default(5)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

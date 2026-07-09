@@ -17,5 +17,6 @@ export class ClassEntity {
     public readonly updatedAt?: Date,
     public readonly students?: UserEntity[],
     public readonly classSubjects?: any[],
+    public readonly _count?: { students: number },
   ) {}
 }

@@ -7,6 +7,7 @@ import { RolesGuard } from '../infrastructure/security/roles.guard';
 import { Roles } from '../infrastructure/security/roles.decorator';
 import { Role } from '../domain/entities/user.entity';
 import { CurrentUser } from '../infrastructure/security/current-user.decorator';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Controller('attendance')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -14,6 +15,7 @@ export class AttendanceController {
   constructor(
     private readonly markAttendanceUseCase: MarkAttendanceUseCase,
     private readonly getStudentAttendanceUseCase: GetStudentAttendanceUseCase,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Post()
@@ -33,5 +35,17 @@ export class AttendanceController {
     @CurrentUser() user: any,
   ) {
     return this.getStudentAttendanceUseCase.execute(studentId, classId, user.institutionId);
+  }
+
+  @Get('class/:classId')
+  @Roles(Role.ADMIN, Role.TEACHER)
+  getClassAttendance(
+    @Param('classId') classId: string,
+    @CurrentUser() user: any,
+  ) {
+    return (this.prisma as any).attendance.findMany({
+      where: { classId, institutionId: user.institutionId },
+      include: { student: { select: { name: true } } }
+    });
   }
 }

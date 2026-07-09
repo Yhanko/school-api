@@ -14,6 +14,7 @@ export class PrismaGradeRepository implements IGradeRepository {
       model.subjectId,
       model.classId,
       model.term,
+      model.type,
       model.value,
       model.teacherId,
       model.institutionId,
@@ -29,6 +30,7 @@ export class PrismaGradeRepository implements IGradeRepository {
         subjectId: grade.subjectId,
         classId: grade.classId,
         term: grade.term,
+        type: grade.type,
         value: grade.value,
         teacherId: grade.teacherId,
         institutionId: grade.institutionId,
@@ -52,6 +54,7 @@ export class PrismaGradeRepository implements IGradeRepository {
       const entity = this.mapToEntity(g);
       (entity as any).subjectName = g.subject.name;
       (entity as any).teacherName = g.teacher.name;
+      (entity as any).type = g.type;
       return entity;
     });
   }

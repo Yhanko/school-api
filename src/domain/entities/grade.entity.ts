@@ -5,6 +5,7 @@ export class GradeEntity {
     public readonly subjectId: string,
     public readonly classId: string,
     public readonly term: string,
+    public readonly type: string,
     public readonly value: number,
     public readonly teacherId: string,
     public readonly institutionId: string,

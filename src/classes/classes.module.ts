@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ClassesController } from './classes.controller';
+import { LessonSummaryController } from './lesson-summary.controller';
+import { LessonPlanController } from './lesson-plan.controller';
+import { ExamController } from './exam.controller';
 import { CreateClassUseCase } from '../application/use-cases/create-class.use-case';
 import { EnrollStudentUseCase } from '../application/use-cases/enroll-student.use-case';
 import { AssignSubjectUseCase } from '../application/use-cases/assign-subject.use-case';
@@ -14,7 +17,7 @@ import { AcademicYearsModule } from '../academic-years/academic-years.module';
 
 @Module({
   imports: [PrismaModule, AcademicYearsModule],
-  controllers: [ClassesController],
+  controllers: [ClassesController, LessonSummaryController, LessonPlanController, ExamController],
   providers: [
     CreateClassUseCase,
     EnrollStudentUseCase,

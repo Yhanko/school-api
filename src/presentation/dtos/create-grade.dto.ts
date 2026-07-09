@@ -17,6 +17,10 @@ export class CreateGradeDto {
   @IsNotEmpty()
   term: string; // 'first', 'second', 'third', 'final'
 
+  @IsString()
+  @IsNotEmpty()
+  type: string; // 'AC', 'CPP', 'PT'
+
   @IsNumber()
   @Min(0)
   @Max(20)

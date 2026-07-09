@@ -92,7 +92,8 @@ export class UsersService {
           },
           enrollments: {
             include: { class: true }
-          }
+          },
+          institution: true
         }
     });
     if (!user) throw new NotFoundException('User not found');

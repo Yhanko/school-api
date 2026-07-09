@@ -5,18 +5,35 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ResourcesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: any, institutionId: string) {
+  async create(data: any, institutionId: string, authorId: string) {
     return this.prisma.resource.create({
       data: {
-        ...data,
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        url: data.url,
         institutionId,
+        authorId,
+        classId: data.classId || null,
+        subjectId: data.subjectId || null,
       },
     });
   }
 
-  async findAll(institutionId: string) {
+  async findAll(institutionId: string, user: any) {
+    let whereClause: any = { institutionId };
+    
+    // Se for professor, vê apenas os recursos que ele próprio enviou
+    if (user.role === 'TEACHER') {
+      whereClause.authorId = user.id;
+    }
+
     return this.prisma.resource.findMany({
-      where: { institutionId },
+      where: whereClause,
+      include: {
+        class: { select: { name: true } },
+        subject: { select: { name: true } }
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

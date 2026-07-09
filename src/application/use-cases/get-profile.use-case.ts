@@ -15,6 +15,7 @@ export class GetProfileUseCase {
         email: true,
         role: true,
         institutionId: true,
+        institution: true,
         createdAt: true,
         employeeProfile: {
           select: {

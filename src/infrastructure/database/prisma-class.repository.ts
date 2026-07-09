@@ -50,6 +50,7 @@ export class PrismaClassRepository implements IClassRepository {
       model.updatedAt,
       students,
       model.classSubjects,
+      model._count ? { students: model._count.enrollments || 0 } : undefined,
     );
   }
 
@@ -101,6 +102,11 @@ export class PrismaClassRepository implements IClassRepository {
       where: { institutionId },
       include: {
         teachers: true,
+        _count: {
+          select: {
+            enrollments: { where: { status: 'active' } },
+          },
+        },
       },
     });
     return classes.map((c) => this.mapToEntity(c));

@@ -45,6 +45,7 @@ export class CreateGradeUseCase {
       dto.subjectId,
       dto.classId,
       dto.term,
+      dto.type,
       dto.value,
       teacherId,
       institutionId,

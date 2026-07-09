@@ -14,13 +14,13 @@ export class ResourcesController {
   @Post()
   @Roles(Role.ADMIN, Role.TEACHER)
   create(@Body() createResourceDto: any, @CurrentUser() user: any) {
-    return this.resourcesService.create(createResourceDto, user.institutionId);
+    return this.resourcesService.create(createResourceDto, user.institutionId, user.id);
   }
 
   @Get()
   @Roles(Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
   findAll(@CurrentUser() user: any) {
-    return this.resourcesService.findAll(user.institutionId);
+    return this.resourcesService.findAll(user.institutionId, user);
   }
 
   @Delete(':id')
