@@ -12,4 +12,12 @@ export class CreateRoomDto {
   @IsString()
   @IsOptional()
   floor?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  academicLevel: string;
+
+  @IsString()
+  @IsOptional()
+  grade?: string;
 }

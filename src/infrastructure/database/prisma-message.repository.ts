@@ -51,4 +51,40 @@ export class PrismaMessageRepository implements IMessageRepository {
       data: { read: true },
     });
   }
+
+  async findInbox(userId: string): Promise<any[]> {
+    const messages = await this.prisma.message.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        sender: { select: { id: true, name: true, role: true } },
+        receiver: { select: { id: true, name: true, role: true } },
+      },
+    });
+
+    const inboxMap = new Map<string, any>();
+    
+    for (const msg of messages) {
+      const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
+      if (!otherUser) continue;
+      
+      if (!inboxMap.has(otherUser.id)) {
+        inboxMap.set(otherUser.id, {
+          contact: otherUser,
+          lastMessage: {
+            id: msg.id,
+            content: msg.content,
+            createdAt: msg.createdAt,
+            read: msg.read,
+            isSender: msg.senderId === userId
+          }
+        });
+      }
+    }
+
+    return Array.from(inboxMap.values());
+  }
 }

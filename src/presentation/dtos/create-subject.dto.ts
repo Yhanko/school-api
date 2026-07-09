@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
 
 export class CreateSubjectDto {
   @IsString()
@@ -8,4 +8,14 @@ export class CreateSubjectDto {
   @IsString()
   @IsOptional()
   code?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  classIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  academicLevels?: string[];
 }

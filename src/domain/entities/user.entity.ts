@@ -18,8 +18,11 @@ export class UserEntity {
     public readonly role: Role,
     public readonly password?: string,
     public readonly institutionId?: string | null,
-    public readonly profile?: EmployeeProfileEntity,
+    public readonly profile?: EmployeeProfileEntity | null,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    public readonly parentId?: string | null,
+    public readonly enrollments?: any[] | null,
+    public readonly code?: string | null,
   ) {}
 }

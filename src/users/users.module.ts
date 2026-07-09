@@ -13,9 +13,12 @@ import { IUserRepository } from '../domain/repositories/user.repository.interfac
 import { IHashService } from '../application/interfaces/hash.service.interface';
 import { PrismaEmployeeProfileRepository } from '../infrastructure/database/prisma-employee-profile.repository';
 import { IEmployeeProfileRepository } from '../domain/repositories/employee-profile.repository.interface';
+import { PrismaClassRepository } from '../infrastructure/database/prisma-class.repository';
+import { IClassRepository } from '../domain/repositories/class.repository.interface';
+import { AcademicYearsModule } from '../academic-years/academic-years.module';
 
 @Module({
-  imports: [PrismaModule, InstitutionsModule],
+  imports: [PrismaModule, InstitutionsModule, AcademicYearsModule],
   providers: [
     UsersService,
     CreateAdminUseCase,
@@ -33,6 +36,10 @@ import { IEmployeeProfileRepository } from '../domain/repositories/employee-prof
     {
       provide: IHashService,
       useClass: BcryptHashService,
+    },
+    {
+      provide: IClassRepository,
+      useClass: PrismaClassRepository,
     },
   ],
   controllers: [UsersController]

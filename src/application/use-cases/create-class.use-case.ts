@@ -5,6 +5,8 @@ import { IUserRepository } from '../../domain/repositories/user.repository.inter
 import { CreateClassDto } from '../../presentation/dtos/create-class.dto';
 import { ClassEntity } from '../../domain/entities/class.entity';
 import { Role } from '../../domain/entities/user.entity';
+import { ActivityLoggerService, LogAction } from '../services/activity-logger.service';
+import { AcademicYearsService } from '../../academic-years/academic-years.service';
 
 @Injectable()
 export class CreateClassUseCase {
@@ -15,6 +17,8 @@ export class CreateClassUseCase {
     private readonly institutionRepository: IInstitutionRepository,
     @Inject(IUserRepository)
     private readonly userRepository: IUserRepository,
+    private readonly activityLogger: ActivityLoggerService,
+    private readonly academicYearsService: AcademicYearsService,
   ) {}
 
   async execute(dto: CreateClassDto, institutionId: string): Promise<ClassEntity> {
@@ -43,6 +47,9 @@ export class CreateClassUseCase {
       }
     }
 
+    // Get or Create Active Academic Year
+    const activeYear = await this.academicYearsService.getActiveYear(institutionId);
+
     const classEntity = new ClassEntity(
       '',
       dto.name,
@@ -51,9 +58,23 @@ export class CreateClassUseCase {
       dto.room,
       dto.capacity,
       institutionId,
+      activeYear.id,
+      undefined, // teachers
+      dto.grade,
+      dto.course
     );
 
-    return this.classRepository.create(classEntity, dto.teacherIds);
+    const createdClass = await this.classRepository.create(classEntity, dto.teacherIds || []);
+
+    await this.activityLogger.logAction(
+      LogAction.CREATE_CLASS,
+      'Class',
+      `Created class ${createdClass.name} (${createdClass.period}, Grade: ${createdClass.grade})`,
+      undefined,
+      institutionId
+    );
+
+    return createdClass;
   }
 
   async executeGetByInstitution(institutionId: string) {

@@ -23,6 +23,11 @@ export class MessagesController {
     return this.sendMessageUseCase.execute(user.sub, dto, user.institutionId);
   }
 
+  @Get('inbox')
+  getInbox(@CurrentUser() user: any) {
+    return this.messageRepository.findInbox(user.sub);
+  }
+
   @Get('conversation/:userId')
   getConversation(
     @Param('userId') userId: string,

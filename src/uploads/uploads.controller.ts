@@ -1,11 +1,13 @@
-import { Controller, Post, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, UseGuards, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
 import * as fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import * as streamifier from 'streamifier';
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists for disk storage
 const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
@@ -37,5 +39,48 @@ export class UploadsController {
       mimetype: file.mimetype,
       size: file.size
     };
+  }
+
+  @Post('cloudinary')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    }
+  }))
+  async uploadToCloudinary(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+      throw new BadRequestException('Cloudinary credentials are not configured in the server.');
+    }
+
+    // Configure Cloudinary dynamically so it picks up process.env correctly
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'regulations', resource_type: 'auto' },
+        (error, result) => {
+          if (error) return reject(new BadRequestException('Failed to upload file to Cloudinary: ' + error.message));
+          if (!result) return reject(new BadRequestException('Upload returned empty result'));
+          resolve({
+            filename: result.public_id,
+            path: result.secure_url,
+            originalname: file.originalname,
+            mimetype: file.mimetype,
+            size: result.bytes
+          });
+        }
+      );
+
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
   }
 }

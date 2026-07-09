@@ -29,6 +29,8 @@ import { ResourcesModule } from './resources/resources.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { UploadsModule } from './uploads/uploads.module';
+import { ActivityLoggerModule } from './application/services/activity-logger.module';
+import { AcademicYearsModule } from './academic-years/academic-years.module';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { UploadsModule } from './uploads/uploads.module';
     ScheduleModule.forRoot(),
     PrismaModule, 
     UsersModule, 
+    AcademicYearsModule,
     AuthModule, 
     InstitutionsModule, 
     ClassesModule,
@@ -62,7 +65,8 @@ import { UploadsModule } from './uploads/uploads.module';
     SuperAdminModule,
     AiModule,
     ResourcesModule,
-    UploadsModule
+    UploadsModule,
+    ActivityLoggerModule
   ],
   controllers: [AppController],
   providers: [AppService],

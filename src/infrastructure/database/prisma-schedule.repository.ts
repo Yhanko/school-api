@@ -39,14 +39,29 @@ export class PrismaScheduleRepository implements IScheduleRepository {
     return this.mapToEntity(created);
   }
 
-  async findByClass(classId: string): Promise<ScheduleEntity[]> {
+  async findByClass(classId: string): Promise<any[]> {
     const schedules = await this.prisma.schedule.findMany({
       where: { classId },
+      include: {
+        subject: true,
+        teacher: {
+          include: {
+            employeeProfile: true
+          }
+        },
+        room: true
+      },
       orderBy: [
         { dayOfWeek: 'asc' },
         { startTime: 'asc' }
       ]
     });
-    return schedules.map((s) => this.mapToEntity(s));
+    return schedules;
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.schedule.delete({
+      where: { id }
+    });
   }
 }

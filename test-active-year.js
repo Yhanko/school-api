@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const axios = require('axios'); try { const res = await axios.get('http://localhost:4000/users'); } catch (e) {} const y = await prisma.academicYear.findFirst(); console.log(y); } main().finally(() => prisma.$disconnect());

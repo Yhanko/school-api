@@ -27,11 +27,11 @@ export class CreateGradeUseCase {
     }
 
     // Verify if student is enrolled in the class
-    const isEnrolled = await this.prisma.class.count({
+    const isEnrolled = await this.prisma.enrollment.count({
       where: {
-        id: dto.classId,
-        institutionId: institutionId,
-        students: { some: { id: dto.studentId } }
+        classId: dto.classId,
+        studentId: dto.studentId,
+        status: 'active'
       }
     });
 

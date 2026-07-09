@@ -3,6 +3,7 @@ import { IClassRepository } from '../../domain/repositories/class.repository.int
 import { IUserRepository } from '../../domain/repositories/user.repository.interface';
 import { Role } from '../../domain/entities/user.entity';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AcademicYearsService } from '../../academic-years/academic-years.service';
 
 @Injectable()
 export class EnrollStudentUseCase {
@@ -12,6 +13,7 @@ export class EnrollStudentUseCase {
     @Inject(IUserRepository)
     private readonly userRepository: IUserRepository,
     private readonly prisma: PrismaService, // Using Prisma directly here for simplicity on N:M, alternatively expand the IClassRepository
+    private readonly academicYearsService: AcademicYearsService,
   ) {}
 
   async execute(classId: string, studentId: string, institutionId: string): Promise<void> {
@@ -38,13 +40,10 @@ export class EnrollStudentUseCase {
     }
 
     // Check capacity
-    const currentStudentsCount = await this.prisma.user.count({
+    const currentStudentsCount = await this.prisma.enrollment.count({
       where: {
-        enrolledClasses: {
-          some: {
-            id: classId
-          }
-        }
+        classId: classId,
+        status: 'active'
       }
     });
 
@@ -52,13 +51,15 @@ export class EnrollStudentUseCase {
       throw new BadRequestException(`Class is full. Maximum capacity is ${classEntity.capacity}`);
     }
 
+    const activeYear = await this.academicYearsService.getActiveYear(institutionId);
+
     // Enroll student
-    await this.prisma.class.update({
-      where: { id: classId },
+    await this.prisma.enrollment.create({
       data: {
-        students: {
-          connect: { id: studentId }
-        }
+        studentId: studentId,
+        classId: classId,
+        academicYearId: activeYear.id,
+        status: 'active'
       }
     });
   }

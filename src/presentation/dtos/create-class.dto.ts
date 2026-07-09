@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateClassDto {
   @IsString()
@@ -13,6 +13,14 @@ export class CreateClassDto {
   @IsNotEmpty()
   academicLevel: string;
 
+  @IsOptional()
+  @IsString()
+  grade?: string;
+
+  @IsOptional()
+  @IsString()
+  course?: string;
+
   @IsString()
   @IsNotEmpty()
   room: string;
@@ -21,8 +29,8 @@ export class CreateClassDto {
   @Min(1)
   capacity: number;
 
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @IsNotEmpty()
-  teacherIds: string[];
+  teacherIds?: string[];
 }

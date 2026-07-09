@@ -43,6 +43,17 @@ export class SuperAdminService {
         },
       });
 
+      const platform = await tx.platform.create({
+        data: {
+          platformName: 'Gestão Escolar Web',
+          platformType: 'web',
+          status: 'active',
+          activeUsersCount: 1,
+          institutionId: institution.id,
+          lastSync: new Date()
+        }
+      });
+
       // Default to 1 year subscription for now
       const endDate = new Date();
       endDate.setFullYear(endDate.getFullYear() + 1);
@@ -77,6 +88,17 @@ export class SuperAdminService {
           code: name.substring(0, 3).toUpperCase(),
           institutionId: institution.id
         }))
+      });
+
+      // SEED DEFAULT ACADEMIC YEAR
+      await tx.academicYear.create({
+        data: {
+          year: `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`,
+          startDate: new Date(`${new Date().getFullYear()}-09-01`),
+          endDate: new Date(`${new Date().getFullYear() + 1}-06-30`),
+          isActive: true,
+          institutionId: institution.id
+        }
       });
 
       
@@ -153,7 +175,11 @@ export class SuperAdminService {
     const totalSchools = await this.prisma.institution.count();
     const totalStudents = await this.prisma.user.count({ where: { role: Role.STUDENT } });
     const totalTeachers = await this.prisma.user.count({ where: { role: Role.TEACHER } });
+    const totalStaff = await this.prisma.user.count({ where: { role: { in: [Role.ADMIN, Role.SECRETARY] } } });
+    const totalParents = await this.prisma.user.count({ where: { role: Role.PARENT } });
     const activeSubscriptions = await this.prisma.subscription.count({ where: { status: 'active' } });
+    const blockedSchools = await this.prisma.subscription.count({ where: { status: { not: 'active' } } });
+    const activePlatforms = await this.prisma.platform.count({ where: { status: 'active' } });
 
     // Renda Mensal (Exemplo)
     const activePlans = await this.prisma.subscription.findMany({
@@ -161,12 +187,26 @@ export class SuperAdminService {
       include: { plan: true },
     });
     const monthlyRevenue = activePlans.reduce((acc, sub) => acc + (sub.plan?.price || 0), 0);
+    
+    // Pagamentos e Faturamento Adicional
+    const payments = await this.prisma.payment.findMany();
+    const totalPayments = payments.length;
+    const completedPayments = payments.filter(p => p.status === 'confirmed').length;
+    const pendingRevenue = payments.filter(p => p.status === 'pending').reduce((acc, p) => acc + p.amount, 0);
 
     return {
       totalSchools,
       totalStudents,
       totalTeachers,
+      totalStaff,
+      totalParents,
+      activeParents: totalParents,
       activeSubscriptions,
+      blockedSchools,
+      activePlatforms,
+      totalPayments,
+      completedPayments,
+      pendingRevenue,
       monthlyRevenue,
     };
   }

@@ -7,12 +7,16 @@ import { Roles } from '../infrastructure/security/roles.decorator';
 import { Role } from '../domain/entities/user.entity';
 import { CurrentUser } from '../infrastructure/security/current-user.decorator';
 import { EnrollStudentUseCase } from '../application/use-cases/enroll-student.use-case';
+import { AssignSubjectUseCase } from '../application/use-cases/assign-subject.use-case';
+import { AssignSubjectDto } from '../presentation/dtos/assign-subject.dto';
+import { Delete } from '@nestjs/common';
 
 @Controller('classes')
 export class ClassesController {
   constructor(
     private readonly createClassUseCase: CreateClassUseCase,
     private readonly enrollStudentUseCase: EnrollStudentUseCase,
+    private readonly assignSubjectUseCase: AssignSubjectUseCase,
   ) {}
 
   @Get()
@@ -61,5 +65,35 @@ export class ClassesController {
     return this.enrollStudentUseCase.execute(classId, studentId, user.institutionId);
   }
 
-  // Future endpoints (e.g. GET /classes) could go here
+  @Get(':id/subjects')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SECRETARY, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  getClassSubjects(
+    @Param('id') classId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.assignSubjectUseCase.getClassSubjects(classId, user.institutionId);
+  }
+
+  @Post(':id/subjects')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SECRETARY)
+  assignSubject(
+    @Param('id') classId: string,
+    @Body() assignDto: AssignSubjectDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.assignSubjectUseCase.execute(classId, assignDto.subjectId, assignDto.teacherId, user.institutionId);
+  }
+
+  @Delete(':id/subjects/:subjectId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SECRETARY)
+  removeSubject(
+    @Param('id') classId: string,
+    @Param('subjectId') subjectId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.assignSubjectUseCase.executeRemove(classId, subjectId, user.institutionId);
+  }
 }

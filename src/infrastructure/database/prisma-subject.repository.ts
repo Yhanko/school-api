@@ -47,11 +47,13 @@ export class PrismaSubjectRepository implements ISubjectRepository {
   async findByStudent(studentId: string): Promise<SubjectEntity[]> {
     const subjects = await this.prisma.subject.findMany({
       where: {
-        classes: {
+        classSubjects: {
           some: {
-            students: {
-              some: { id: studentId },
-            },
+            class: {
+              enrollments: {
+                some: { studentId: studentId, status: 'active' },
+              },
+            }
           },
         },
       },

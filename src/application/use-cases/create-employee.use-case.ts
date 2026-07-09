@@ -6,6 +6,8 @@ import { IHashService } from '../interfaces/hash.service.interface';
 import { UserEntity, Role } from '../../domain/entities/user.entity';
 import { EmployeeProfileEntity } from '../../domain/entities/employee-profile.entity';
 import { CreateEmployeeDto } from '../../presentation/dtos/create-employee.dto';
+import { IClassRepository } from '../../domain/repositories/class.repository.interface';
+import { ActivityLoggerService, LogAction } from '../services/activity-logger.service';
 
 @Injectable()
 export class CreateEmployeeUseCase {
@@ -18,6 +20,9 @@ export class CreateEmployeeUseCase {
     private readonly profileRepository: IEmployeeProfileRepository,
     @Inject(IHashService)
     private readonly hashService: IHashService,
+    @Inject(IClassRepository)
+    private readonly classRepository: IClassRepository,
+    private readonly activityLogger: ActivityLoggerService,
   ) {}
 
   async execute(dto: CreateEmployeeDto, institutionId: string): Promise<Omit<UserEntity, 'password'>> {
@@ -74,6 +79,19 @@ export class CreateEmployeeUseCase {
       dto.biUrl
     );
     const createdProfile = await this.profileRepository.create(profileToCreate);
+
+    // 6.5 Connect to Class if classId is provided
+    if (dto.classId && dto.role === Role.TEACHER) {
+      await this.classRepository.addTeacherToClass(dto.classId, createdUser.id);
+    }
+
+    await this.activityLogger.logAction(
+      LogAction.CREATE_EMPLOYEE,
+      'User',
+      `Created employee profile for ${createdUser.name} (${createdUser.email}) with role ${createdUser.role}`,
+      createdUser.id,
+      institutionId
+    );
 
     // 7. Return sanitized user with profile
     const { password, ...result } = createdUser;

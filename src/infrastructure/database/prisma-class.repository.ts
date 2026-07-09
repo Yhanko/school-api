@@ -21,17 +21,35 @@ export class PrismaClassRepository implements IClassRepository {
         ),
     );
 
+    const students = model.students?.map(
+      (s: any) =>
+        new UserEntity(
+          s.id,
+          s.email,
+          s.name,
+          s.role as Role,
+          undefined,
+          s.institutionId,
+          s.employeeProfile,
+        ),
+    );
+
     return new ClassEntity(
       model.id,
       model.name,
       model.period,
       model.academicLevel,
-      model.room,
+      model.roomName, // maps from roomName in prisma to room in entity
       model.capacity,
       model.institutionId,
+      model.academicYearId,
       teachers,
+      model.grade,
+      model.course,
       model.createdAt,
       model.updatedAt,
+      students,
+      model.classSubjects,
     );
   }
 
@@ -41,12 +59,14 @@ export class PrismaClassRepository implements IClassRepository {
         name: classData.name,
         period: classData.period,
         academicLevel: classData.academicLevel,
-        roomName: 'Default', roomId: classData.room,
+        grade: classData.grade,
+        course: classData.course,
+        roomName: classData.room,
         capacity: classData.capacity,
         institutionId: classData.institutionId,
-        teachers: {
+        teachers: teacherIds && teacherIds.length > 0 ? {
           connect: teacherIds.map((id) => ({ id })),
-        },
+        } : undefined,
       },
       include: {
         teachers: true,
@@ -60,6 +80,17 @@ export class PrismaClassRepository implements IClassRepository {
       where: { id },
       include: {
         teachers: true,
+        enrollments: {
+          where: { status: 'active' },
+          include: {
+            student: {
+              include: { employeeProfile: true }
+            }
+          }
+        },
+        classSubjects: {
+          include: { subject: true, teacher: true }
+        }
       },
     });
     return classModel ? this.mapToEntity(classModel) : null;
@@ -73,6 +104,17 @@ export class PrismaClassRepository implements IClassRepository {
       },
     });
     return classes.map((c) => this.mapToEntity(c));
+  }
+
+  async addTeacherToClass(classId: string, teacherId: string): Promise<void> {
+    await this.prisma.class.update({
+      where: { id: classId },
+      data: {
+        teachers: {
+          connect: { id: teacherId }
+        }
+      }
+    });
   }
 }
 

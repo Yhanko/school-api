@@ -38,6 +38,7 @@ model Institution {
   activityLogs        ActivityLog[]        @relation("InstitutionLogs")
   platforms           Platform[]
   supportTickets      SupportTicket[]
+  academicYears       AcademicYear[]
 }
 
 model User {
@@ -45,6 +46,7 @@ model User {
   email           String           @unique
   password        String
   name            String
+  code            String?          // e.g. student number, employee code
   role            Role             @default(STUDENT)
   lastLogin       DateTime?
   institutionId   String?
@@ -52,7 +54,8 @@ model User {
   employeeProfile EmployeeProfile?
 
   classesTeaching Class[]   @relation("ClassTeachers")
-  enrolledClasses Class[]   @relation("ClassStudents")
+  enrollments     Enrollment[]
+
   payments        Payment[]
 
   studentGrades Grade[] @relation("StudentGrades")
@@ -82,6 +85,8 @@ model User {
   reportedIncidents   DisciplinaryRecord[] @relation("ReporterDisciplinary")
 
   userPermission UserPermission?
+
+  classSubjects  ClassSubject[] @relation("TeacherClassSubjects")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -121,6 +126,8 @@ model Class {
   name          String
   period        String
   academicLevel String
+  grade         String?
+  course        String?
   roomName      String
   capacity      Int
 
@@ -128,8 +135,13 @@ model Class {
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 
   teachers User[]    @relation("ClassTeachers")
-  students User[]    @relation("ClassStudents")
-  subjects Subject[] @relation("ClassSubjects")
+  enrollments Enrollment[]
+  
+  academicYearId String?
+  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+
+  
+  classSubjects ClassSubject[] @relation("ClassToClassSubject")
 
   roomId String?
   room   Room?   @relation(fields: [roomId], references: [id])
@@ -150,7 +162,7 @@ model Subject {
   institutionId String
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 
-  classes Class[] @relation("ClassSubjects")
+  classSubjects ClassSubject[] @relation("SubjectToClassSubject")
 
   grades      Grade[]
   attendances Attendance[]
@@ -158,6 +170,23 @@ model Subject {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   schedules Schedule[]
+}
+
+model ClassSubject {
+  id        String  @id @default(uuid())
+  classId   String
+  class     Class   @relation("ClassToClassSubject", fields: [classId], references: [id], onDelete: Cascade)
+  
+  subjectId String
+  subject   Subject @relation("SubjectToClassSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  teacherId String?
+  teacher   User?   @relation("TeacherClassSubjects", fields: [teacherId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([classId, subjectId])
 }
 
 model Event {
@@ -245,10 +274,12 @@ model Attendance {
 }
 
 model Room {
-  id       String  @id @default(uuid())
-  name     String
-  capacity Int
-  floor    String?
+  id            String  @id @default(uuid())
+  name          String
+  capacity      Int
+  floor         String?
+  academicLevel String
+  grade         String?
 
   institutionId String
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
@@ -532,4 +563,41 @@ model Resource {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AcademicYear {
+  id            String   @id @default(uuid())
+  year          String   // e.g. "2024/2025"
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(false)
+  
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  
+  classes       Class[]
+  enrollments   Enrollment[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Enrollment {
+  id             String       @id @default(uuid())
+  studentId      String
+  student        User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  classId        String
+  class          Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  
+  status         String       @default("active") // "active", "approved", "failed", "transferred", "dropped"
+  finalGrade     Float?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([studentId, academicYearId])
 }

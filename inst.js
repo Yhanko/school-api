@@ -1,0 +1,1 @@
+const { PrismaClient } = require('@prisma/client'); const prisma = new PrismaClient(); async function main() { const inst = await prisma.institution.findUnique({ where: { id: '02ee86c0-12c5-4b51-b690-6223313e6fe5' }}); console.log(inst); } main().finally(() => prisma.$disconnect());

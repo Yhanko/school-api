@@ -13,6 +13,8 @@ export class PrismaRoomRepository implements IRoomRepository {
       model.name,
       model.capacity,
       model.institutionId,
+      model.academicLevel,
+      model.grade,
       model.floor,
       model.createdAt,
       model.updatedAt,
@@ -25,6 +27,8 @@ export class PrismaRoomRepository implements IRoomRepository {
         name: room.name,
         capacity: room.capacity,
         floor: room.floor,
+        academicLevel: room.academicLevel,
+        grade: room.grade,
         institutionId: room.institutionId,
       },
     });

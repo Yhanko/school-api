@@ -21,6 +21,9 @@ export class PrismaUserRepository implements IUserRepository {
       undefined,
       user.createdAt,
       user.updatedAt,
+      undefined,
+      undefined,
+      user.code
     );
     (entity as any).profile = user.employeeProfile;
     return entity;
@@ -40,6 +43,9 @@ export class PrismaUserRepository implements IUserRepository {
       undefined,
       user.createdAt,
       user.updatedAt,
+      undefined,
+      undefined,
+      user.code
     );
     (entity as any).profile = user.employeeProfile;
     return entity;
@@ -58,6 +64,9 @@ export class PrismaUserRepository implements IUserRepository {
         undefined,
         user.createdAt,
         user.updatedAt,
+        undefined,
+        undefined,
+        user.code
       );
       (entity as any).profile = user.employeeProfile;
       return entity;
@@ -69,28 +78,54 @@ export class PrismaUserRepository implements IUserRepository {
     const isTeacher = user.role === Role.TEACHER;
     const isSecretary = user.role === Role.SECRETARY;
 
-    const created = await this.prisma.user.create({
-      data: {
-        email: user.email,
-        password: user.password as string,
-        name: user.name,
-        role: user.role as any,
-        institutionId: user.institutionId,
-        userPermission: {
-          create: {
-            dashboard: isSuperAdminOrAdmin || isTeacher || isSecretary,
-            students: isSuperAdminOrAdmin || isTeacher || isSecretary,
-            teachers: isSuperAdminOrAdmin || isSecretary,
-            classes: isSuperAdminOrAdmin || isTeacher || isSecretary,
-            financial: isSuperAdminOrAdmin || isSecretary,
-            activities: isSuperAdminOrAdmin || isTeacher || isSecretary,
-            payments: isSuperAdminOrAdmin || isSecretary,
-            attendance: isSuperAdminOrAdmin || isTeacher || isSecretary,
-            discipline: isSuperAdminOrAdmin || isTeacher || isSecretary,
-            permissions: isSuperAdminOrAdmin,
-          }
+    const createData: any = {
+      email: user.email,
+      password: user.password as string,
+      name: user.name,
+      code: user.code,
+      role: user.role as any,
+      institutionId: user.institutionId,
+      userPermission: {
+        create: {
+          dashboard: isSuperAdminOrAdmin || isTeacher || isSecretary,
+          students: isSuperAdminOrAdmin || isTeacher || isSecretary,
+          teachers: isSuperAdminOrAdmin || isSecretary,
+          classes: isSuperAdminOrAdmin || isTeacher || isSecretary,
+          financial: isSuperAdminOrAdmin || isSecretary,
+          activities: isSuperAdminOrAdmin || isTeacher || isSecretary,
+          payments: isSuperAdminOrAdmin || isSecretary,
+          attendance: isSuperAdminOrAdmin || isTeacher || isSecretary,
+          discipline: isSuperAdminOrAdmin || isTeacher || isSecretary,
+          permissions: isSuperAdminOrAdmin,
         }
-      },
+      }
+    };
+
+    if (user.parentId) {
+      createData.parentId = user.parentId;
+    }
+
+    if (user.profile) {
+      createData.employeeProfile = {
+        create: {
+          phone: user.profile.phone,
+          city: user.profile.city,
+        }
+      };
+    }
+
+    if (user.enrollments && user.enrollments.length > 0) {
+      createData.enrollments = {
+        create: user.enrollments.map(e => ({
+          classId: e.classId,
+          academicYearId: e.academicYearId,
+          status: e.status
+        }))
+      };
+    }
+
+    const created = await this.prisma.user.create({
+      data: createData,
     });
 
     return new UserEntity(
@@ -103,6 +138,9 @@ export class PrismaUserRepository implements IUserRepository {
       undefined,
       created.createdAt,
       created.updatedAt,
+      undefined,
+      undefined,
+      created.code
     );
   }
 
@@ -136,6 +174,9 @@ export class PrismaUserRepository implements IUserRepository {
       undefined,
       updated.createdAt,
       updated.updatedAt,
+      undefined,
+      undefined,
+      updated.code
     );
     (entity as any).profile = updated.employeeProfile;
     return entity;

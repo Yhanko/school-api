@@ -9,8 +9,13 @@ export class ClassEntity {
     public readonly room: string,
     public readonly capacity: number,
     public readonly institutionId: string,
+    public readonly academicYearId?: string,
     public readonly teachers?: UserEntity[],
+    public readonly grade?: string,
+    public readonly course?: string,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    public readonly students?: UserEntity[],
+    public readonly classSubjects?: any[],
   ) {}
 }

@@ -15,6 +15,12 @@ export class GetProfileUseCase {
         email: true,
         role: true,
         institutionId: true,
+        createdAt: true,
+        employeeProfile: {
+          select: {
+            phone: true,
+          }
+        }
       },
     });
 
@@ -41,8 +47,8 @@ export class GetProfileUseCase {
   private async getStudentProfile(userId: string, baseUser: any) {
     const classes = await this.prisma.class.findMany({
       where: {
-        students: {
-          some: { id: userId },
+        enrollments: {
+          some: { studentId: userId, status: 'active' },
         },
       },
     });
@@ -86,7 +92,7 @@ export class GetProfileUseCase {
     const childrenWithDetails = await Promise.all(
       children.map(async (child) => {
         const childClasses = await this.prisma.class.findMany({
-          where: { students: { some: { id: child.id } } },
+          where: { enrollments: { some: { studentId: child.id, status: 'active' } } },
         });
         return {
           ...child,

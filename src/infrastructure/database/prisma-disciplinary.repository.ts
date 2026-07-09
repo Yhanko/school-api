@@ -20,6 +20,7 @@ export class PrismaDisciplinaryRepository implements IDisciplinaryRepository {
       model.institutionId,
       model.createdAt,
       model.updatedAt,
+      model.student ? { id: model.student.id, name: model.student.name } : undefined
     );
   }
 
@@ -34,6 +35,10 @@ export class PrismaDisciplinaryRepository implements IDisciplinaryRepository {
         date: record.date,
         reportedById: record.reportedById,
         institutionId: record.institutionId,
+      },
+      include: {
+        student: { select: { id: true, name: true } },
+        reportedBy: { select: { id: true, name: true } },
       },
     });
     return this.mapToEntity(created);
@@ -54,14 +59,17 @@ export class PrismaDisciplinaryRepository implements IDisciplinaryRepository {
       },
     });
     
-    // Also include student details in the returned object if possible, 
-    // but the entity just returns IDs. For simplicity we'll just map the base model.
-    // Ideally we would add studentName to the entity. Let's just return the mapped entity.
     return records.map((r) => this.mapToEntity(r));
   }
 
   async findById(id: string): Promise<DisciplinaryEntity | null> {
-    const record = await this.prisma.disciplinaryRecord.findUnique({ where: { id } });
+    const record = await this.prisma.disciplinaryRecord.findUnique({ 
+      where: { id },
+      include: {
+        student: { select: { id: true, name: true } },
+        reportedBy: { select: { id: true, name: true } },
+      },
+    });
     if (!record) return null;
     return this.mapToEntity(record);
   }
@@ -70,6 +78,10 @@ export class PrismaDisciplinaryRepository implements IDisciplinaryRepository {
     const updated = await this.prisma.disciplinaryRecord.update({
       where: { id },
       data: { status: status as any },
+      include: {
+        student: { select: { id: true, name: true } },
+        reportedBy: { select: { id: true, name: true } },
+      },
     });
     return this.mapToEntity(updated);
   }

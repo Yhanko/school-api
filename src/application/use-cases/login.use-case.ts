@@ -3,6 +3,7 @@ import { IUserRepository } from '../../domain/repositories/user.repository.inter
 import { IHashService } from '../interfaces/hash.service.interface';
 import { ITokenService } from '../interfaces/token.service.interface';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ActivityLoggerService, LogAction } from '../services/activity-logger.service';
 
 @Injectable()
 export class LoginUseCase {
@@ -14,6 +15,7 @@ export class LoginUseCase {
     @Inject(ITokenService)
     private readonly tokenService: ITokenService,
     private readonly prisma: PrismaService,
+    private readonly activityLogger: ActivityLoggerService,
   ) {}
 
   async execute(email: string, pass: string): Promise<{ access_token: string }> {
@@ -36,7 +38,7 @@ export class LoginUseCase {
         where: { id: user.institutionId }
       });
       if (institution?.status === 'blocked') {
-        throw new ForbiddenException('A sua conta de escola está suspensa por falta de pagamento.');
+        throw new ForbiddenException('A sua conta de escola esta suspensa por falta de pagamento.');
       }
     }
 
@@ -44,6 +46,14 @@ export class LoginUseCase {
       where: { id: user.id },
       data: { lastLogin: new Date() }
     });
+
+    await this.activityLogger.logAction(
+      LogAction.USER_LOGIN,
+      'Authentication',
+      `User ${user.email} logged in.`,
+      user.id,
+      user.institutionId || undefined
+    );
 
     const payload = { 
       sub: user.id, 

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Delete } from '@nestjs/common';
 import { CreateScheduleDto } from '../presentation/dtos/create-schedule.dto';
 import { CreateScheduleUseCase } from '../application/use-cases/create-schedule.use-case';
 import { IScheduleRepository } from '../domain/repositories/schedule.repository.interface';
@@ -31,5 +31,11 @@ export class SchedulesController {
   @Roles(Role.ADMIN, Role.SECRETARY, Role.TEACHER, Role.STUDENT, Role.PARENT)
   getSchedulesByClass(@Param('classId') classId: string) {
     return this.scheduleRepository.findByClass(classId);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN, Role.SECRETARY)
+  deleteSchedule(@Param('id') id: string) {
+    return this.scheduleRepository.delete(id);
   }
 }

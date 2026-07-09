@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ClassesController } from './classes.controller';
 import { CreateClassUseCase } from '../application/use-cases/create-class.use-case';
 import { EnrollStudentUseCase } from '../application/use-cases/enroll-student.use-case';
+import { AssignSubjectUseCase } from '../application/use-cases/assign-subject.use-case';
 import { IClassRepository } from '../domain/repositories/class.repository.interface';
 import { PrismaClassRepository } from '../infrastructure/database/prisma-class.repository';
 import { IInstitutionRepository } from '../domain/repositories/institution.repository.interface';
@@ -9,13 +10,15 @@ import { PrismaInstitutionRepository } from '../infrastructure/database/prisma-i
 import { IUserRepository } from '../domain/repositories/user.repository.interface';
 import { PrismaUserRepository } from '../infrastructure/database/prisma-user.repository';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AcademicYearsModule } from '../academic-years/academic-years.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AcademicYearsModule],
   controllers: [ClassesController],
   providers: [
     CreateClassUseCase,
     EnrollStudentUseCase,
+    AssignSubjectUseCase,
     {
       provide: IClassRepository,
       useClass: PrismaClassRepository,

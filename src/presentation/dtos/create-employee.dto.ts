@@ -21,6 +21,10 @@ export class CreateEmployeeDto {
   // Profile Fields
   @IsString()
   @IsOptional()
+  classId?: string;
+
+  @IsString()
+  @IsOptional()
   phone?: string;
 
   @IsString()

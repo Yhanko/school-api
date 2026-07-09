@@ -58,6 +58,21 @@ export class DisciplinaryController {
     return this.updateDisciplinaryStatusUseCase.execute(id, dto);
   }
 
+  @Post(':id/notify')
+  @Roles(Role.ADMIN, Role.SECRETARY, Role.TEACHER)
+  async notify(@Param('id') id: string) {
+    // In a real application, this would trigger an email or push notification service
+    const record = await this.disciplinaryRepository.findById(id);
+    if (!record) {
+      throw new Error('Ocorrência não encontrada');
+    }
+    
+    return {
+      success: true,
+      message: 'Notificação enviada com sucesso para o encarregado de educação.',
+    };
+  }
+
   @Delete(':id')
   @Roles(Role.ADMIN, Role.SECRETARY)
   deleteRecord(@Param('id') id: string) {

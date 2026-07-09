@@ -23,5 +23,6 @@ export class DisciplinaryEntity {
     public readonly institutionId: string,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
+    public readonly student?: { id: string; name: string }
   ) {}
 }
