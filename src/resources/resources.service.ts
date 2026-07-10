@@ -26,6 +26,18 @@ export class ResourcesService {
     // Se for professor, vê apenas os recursos que ele próprio enviou
     if (user.role === 'TEACHER') {
       whereClause.authorId = user.id;
+    } else if (user.role === 'STUDENT') {
+      // Buscar turmas em que o aluno está inscrito
+      const enrollments = await this.prisma.enrollment.findMany({
+        where: { studentId: user.id },
+        select: { classId: true }
+      });
+      const classIds = enrollments.map(e => e.classId);
+      
+      whereClause.OR = [
+        { classId: null }, // Recursos gerais da instituição
+        { classId: { in: classIds } } // Recursos da turma do aluno
+      ];
     }
 
     return this.prisma.resource.findMany({

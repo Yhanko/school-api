@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, Min, IsOptional } from 'class-validator';
 
 export class CreatePaymentDto {
   @IsString()
@@ -12,4 +12,12 @@ export class CreatePaymentDto {
   @IsNumber()
   @Min(0)
   amount: number;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsOptional()
+  dueDate?: string;
 }

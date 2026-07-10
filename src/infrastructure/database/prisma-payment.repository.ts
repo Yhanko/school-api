@@ -15,7 +15,11 @@ export class PrismaPaymentRepository implements IPaymentRepository {
       model.amount,
       model.institutionId,
       model.status,
+      model.description,
+      model.dueDate,
       model.paymentDate,
+      model.proofUrl,
+      model.paymentMethod,
       model.createdAt,
       model.updatedAt,
       model.student,
@@ -30,6 +34,10 @@ export class PrismaPaymentRepository implements IPaymentRepository {
         amount: payment.amount,
         status: payment.status,
         institutionId: payment.institutionId,
+        description: payment.description,
+        dueDate: payment.dueDate,
+        proofUrl: payment.proofUrl,
+        paymentMethod: payment.paymentMethod,
       },
     });
     return this.mapToEntity(created);
@@ -61,6 +69,8 @@ export class PrismaPaymentRepository implements IPaymentRepository {
       data: {
         status: data.status,
         paymentDate: data.paymentDate,
+        proofUrl: data.proofUrl,
+        paymentMethod: data.paymentMethod,
       },
     });
     return this.mapToEntity(updated);

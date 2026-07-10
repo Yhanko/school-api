@@ -37,7 +37,9 @@ export class CreatePaymentUseCase {
       dto.type,
       dto.amount,
       institutionId,
-      'pending'
+      'pending',
+      dto.description,
+      dto.dueDate ? new Date(dto.dueDate) : undefined,
     );
 
     const createdPayment = await this.paymentRepository.create(paymentEntity);

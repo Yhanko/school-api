@@ -58,16 +58,10 @@ export class MessagesController {
     const allowedUserIds = new Set<string>();
 
     const admins = await this.prisma.user.findMany({
-      where: { institutionId: user.institutionId, role: { in: [Role.ADMIN, Role.SUPER_ADMIN] } },
+      where: { institutionId: user.institutionId, role: { in: [Role.ADMIN, Role.SUPER_ADMIN, Role.SECRETARY] } },
       select: { id: true }
     });
     admins.forEach(a => allowedUserIds.add(a.id));
-
-    const teachers = await this.prisma.user.findMany({
-      where: { institutionId: user.institutionId, role: Role.TEACHER },
-      select: { id: true }
-    });
-    teachers.forEach(t => allowedUserIds.add(t.id));
 
     if (user.role === Role.TEACHER) {
       const teacherWithClasses = await this.prisma.user.findUnique({
@@ -99,13 +93,59 @@ export class MessagesController {
           });
         });
       }
+    } else if (user.role === Role.STUDENT) {
+      const studentData = await this.prisma.user.findUnique({
+        where: { id: user.sub },
+        include: {
+          parent: true,
+          enrollments: {
+            where: { status: 'active' },
+            include: {
+              class: {
+                include: {
+                  teachers: true,
+                  enrollments: {
+                    where: { status: 'active' },
+                    include: { student: true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (studentData) {
+        if (studentData.parent) allowedUserIds.add(studentData.parent.id);
+        studentData.enrollments.forEach(enr => {
+          if (enr.class) {
+            enr.class.teachers.forEach(t => allowedUserIds.add(t.id));
+            enr.class.enrollments.forEach(ce => {
+              if (ce.student) allowedUserIds.add(ce.student.id);
+            });
+          }
+        });
+      }
+    } else {
+      const teachers = await this.prisma.user.findMany({
+        where: { institutionId: user.institutionId, role: Role.TEACHER },
+        select: { id: true }
+      });
+      teachers.forEach(t => allowedUserIds.add(t.id));
+      
+      const students = await this.prisma.user.findMany({
+        where: { institutionId: user.institutionId, role: Role.STUDENT },
+        select: { id: true }
+      });
+      students.forEach(s => allowedUserIds.add(s.id));
     }
 
-    const unreadMessages = await this.prisma.message.findMany({
+    const unreadMessages = await this.prisma.message.groupBy({
+      by: ['senderId'],
       where: { receiverId: user.sub, read: false },
-      select: { senderId: true }
+      _count: { id: true }
     });
-    const unreadSenders = new Set(unreadMessages.map(m => m.senderId));
+    const unreadMap = new Map(unreadMessages.map(u => [u.senderId, u._count.id]));
 
     const contacts = await this.prisma.user.findMany({
       where: {
@@ -117,10 +157,21 @@ export class MessagesController {
       select: { id: true, name: true, role: true }
     });
 
-    return contacts.map(c => ({
-      ...c,
-      hasUnread: unreadSenders.has(c.id)
-    }));
+    const inbox = await this.messageRepository.findInbox(user.sub);
+    const inboxMap = new Map(inbox.map(i => [i.contact.id, i]));
+
+    return contacts.map(c => {
+      const inboxData = inboxMap.get(c.id);
+      return {
+        id: c.id,
+        nome: c.name,
+        tipo: c.role.toLowerCase(),
+        ultimaMensagem: inboxData?.lastMessage?.content || '',
+        hora: inboxData?.lastMessage?.createdAt || '',
+        naoLidas: unreadMap.get(c.id) || 0,
+        online: false
+      };
+    });
   }
 
   @Get('inbox')
@@ -139,5 +190,21 @@ export class MessagesController {
   @Patch(':id/read')
   markAsRead(@Param('id') id: string) {
     return this.messageRepository.markAsRead(id);
+  }
+
+  @Patch('conversation/:userId/read')
+  async markConversationAsRead(
+    @Param('userId') userId: string,
+    @CurrentUser() user: any,
+  ) {
+    await this.prisma.message.updateMany({
+      where: {
+        senderId: userId,
+        receiverId: user.sub,
+        read: false,
+      },
+      data: { read: true },
+    });
+    return { success: true };
   }
 }

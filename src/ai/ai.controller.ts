@@ -29,14 +29,14 @@ export class AiController {
     @Body('studentId') studentId: string,
     @CurrentUser() user: any,
   ) {
-    return this.aiService.chatWithAi(question, studentId, user.institutionId);
+    return this.aiService.chatWithAi(question, studentId, user);
   }
 
   @Get('suggestions')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
-  getSuggestions() {
-    return this.aiService.getSuggestions();
+  getSuggestions(@CurrentUser() user: any) {
+    return this.aiService.getSuggestions(user);
   }
 
   @Get('resources')
