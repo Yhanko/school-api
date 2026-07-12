@@ -49,8 +49,9 @@ export class CreatePaymentUseCase {
       institutionId,
       'Novo Pagamento Registrado',
       `O aluno ${student.name} registrou um novo pagamento de R$ ${dto.amount}.`,
-      'info',
-      'medium'
+      'pagamento',
+      'medium',
+      dto.studentId
     );
 
     return createdPayment;

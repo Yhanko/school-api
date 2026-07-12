@@ -50,6 +50,9 @@ export class SubmitPaymentProofUseCase {
         userId: s.id,
         title: `💳 Comprovativo de Pagamento — ${typeLabel}`,
         description: `${studentName} submeteu um comprovativo de ${typeLabel} (${payment.amount} Kz) via ${methodLabel}. Por favor valide o pagamento.`,
+        type: 'pagamento',
+        priority: 'high',
+        relatedStudentId: payment.studentId,
         institutionId,
       }));
 
@@ -63,6 +66,9 @@ export class SubmitPaymentProofUseCase {
           userId: admin.id,
           title: `💳 Comprovativo de Pagamento Pendente — ${typeLabel}`,
           description: `${studentName} submeteu um comprovativo de ${typeLabel} (${payment.amount} Kz) aguardando validação.`,
+          type: 'pagamento',
+          priority: 'high',
+          relatedStudentId: payment.studentId,
           institutionId,
         });
       }

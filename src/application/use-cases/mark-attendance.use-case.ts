@@ -78,6 +78,9 @@ export class MarkAttendanceUseCase {
             userId: admin.id,
             title: '⚠️ Alerta de Faltas (Risco Escolar)',
             description: `O aluno ${student.name} atingiu 3 faltas consecutivas em ${subjectName}. Recomenda-se contactar o encarregado.`,
+            type: 'falta',
+            priority: 'high',
+            relatedStudentId: dto.studentId,
             institutionId,
           });
         }
@@ -92,6 +95,9 @@ export class MarkAttendanceUseCase {
             userId: studentWithParent.parentId,
             title: '⚠️ Alerta de Faltas do seu Educando',
             description: `O seu educando ${student.name} acumulou 3 faltas consecutivas em ${subjectName}. Por favor, entre em contacto com a escola.`,
+            type: 'falta',
+            priority: 'high',
+            relatedStudentId: dto.studentId,
             institutionId,
           });
         }
@@ -106,6 +112,9 @@ export class MarkAttendanceUseCase {
             userId: sec.id,
             title: '⚠️ Alerta de Faltas — Ação Requerida',
             description: `O aluno ${student.name} tem 3 faltas consecutivas em ${subjectName}. Verifique a situação.`,
+            type: 'falta',
+            priority: 'high',
+            relatedStudentId: dto.studentId,
             institutionId,
           });
         }

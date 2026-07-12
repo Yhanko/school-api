@@ -16,6 +16,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
         priority: notification.priority,
         userId: notification.userId,
         institutionId: notification.institutionId,
+        relatedStudentId: notification.relatedStudentId,
         isRead: notification.isRead,
       },
     });
@@ -29,6 +30,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       created.isRead,
       created.userId,
       created.institutionId,
+      created.relatedStudentId || undefined,
       created.createdAt,
     );
   }
@@ -44,6 +46,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
         priority: n.priority,
         userId: n.userId,
         institutionId: n.institutionId,
+        relatedStudentId: n.relatedStudentId,
         isRead: n.isRead,
       })),
     });
@@ -68,6 +71,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
       n.isRead,
       n.userId,
       n.institutionId,
+      n.relatedStudentId || undefined,
       n.createdAt,
     ));
   }

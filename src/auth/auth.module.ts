@@ -3,6 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from '../presentation/controllers/auth.controller';
 import { LoginUseCase } from '../application/use-cases/login.use-case';
+import { VerifyEmailUseCase } from '../application/use-cases/verify-email.use-case';
+import { ResetPasswordUseCase } from '../application/use-cases/reset-password.use-case';
 import { JwtTokenService } from '../infrastructure/services/jwt-token.service';
 import { BcryptHashService } from '../infrastructure/services/bcrypt-hash.service';
 import { PrismaUserRepository } from '../infrastructure/database/prisma-user.repository';
@@ -24,6 +26,8 @@ import { JwtStrategy } from '../infrastructure/security/jwt.strategy';
   controllers: [AuthController],
   providers: [
     LoginUseCase,
+    VerifyEmailUseCase,
+    ResetPasswordUseCase,
     {
       provide: IUserRepository,
       useClass: PrismaUserRepository,

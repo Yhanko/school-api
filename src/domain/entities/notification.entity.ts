@@ -8,6 +8,7 @@ export class NotificationEntity {
     public readonly isRead: boolean,
     public readonly userId: string,
     public readonly institutionId: string,
+    public readonly relatedStudentId?: string,
     public readonly createdAt?: Date,
   ) {}
 }

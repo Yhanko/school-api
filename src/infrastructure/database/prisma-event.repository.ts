@@ -18,6 +18,8 @@ export class PrismaEventRepository implements IEventRepository {
       model.location,
       model.participants,
       model.institutionId,
+      model.classes,
+      model.classes ? model.classes.map((c: any) => c.id) : [],
       model.createdAt,
       model.updatedAt,
     );
@@ -34,6 +36,10 @@ export class PrismaEventRepository implements IEventRepository {
         location: event.location,
         participants: event.participants,
         institutionId: event.institutionId,
+        classes: event.classIds && event.classIds.length > 0 ? { connect: event.classIds.map((id) => ({ id })) } : undefined,
+      },
+      include: {
+        classes: true,
       },
     });
     return this.mapToEntity(created);
@@ -42,6 +48,7 @@ export class PrismaEventRepository implements IEventRepository {
   async findAllByInstitution(institutionId: string): Promise<EventEntity[]> {
     const events = await this.prisma.event.findMany({
       where: { institutionId },
+      include: { classes: true },
       orderBy: { date: 'asc' },
     });
     return events.map((e) => this.mapToEntity(e));
@@ -50,6 +57,7 @@ export class PrismaEventRepository implements IEventRepository {
   async findById(id: string): Promise<EventEntity | null> {
     const event = await this.prisma.event.findUnique({
       where: { id },
+      include: { classes: true },
     });
     return event ? this.mapToEntity(event) : null;
   }
@@ -65,6 +73,10 @@ export class PrismaEventRepository implements IEventRepository {
         organizer: data.organizer,
         location: data.location,
         participants: data.participants,
+        classes: data.classIds ? { set: data.classIds.map((id) => ({ id })) } : undefined,
+      },
+      include: {
+        classes: true,
       },
     });
     return this.mapToEntity(updated);

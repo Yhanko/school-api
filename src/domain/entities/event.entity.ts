@@ -9,6 +9,8 @@ export class EventEntity {
     public readonly location: string,
     public readonly participants: number,
     public readonly institutionId: string,
+    public readonly classes?: any[],
+    public readonly classIds?: string[],
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {}

@@ -74,6 +74,9 @@ export class CreateGradeUseCase {
         userId: dto.studentId,
         title: `${gradeEmoji} Nova Nota Lançada — ${subjectName}`,
         description: `Recebeste a nota ${dto.value} valores em ${subjectName} (${termLabel}). ${dto.value >= 10 ? 'Bom trabalho!' : 'Recomenda-se mais estudo nesta disciplina.'}`,
+        type: 'nota',
+        priority: dto.value < 10 ? 'high' : 'low',
+        relatedStudentId: dto.studentId,
         institutionId,
       });
 
@@ -83,6 +86,9 @@ export class CreateGradeUseCase {
           userId: studentWithParent.parentId,
           title: `${gradeEmoji} Nota do seu Educando — ${subjectName}`,
           description: `O seu educando ${student.name} recebeu a nota ${dto.value} valores em ${subjectName} (${termLabel}).${dto.value < 10 ? ' Esta nota está abaixo do mínimo. Recomenda-se acompanhamento extra.' : ''}`,
+          type: 'nota',
+          priority: dto.value < 10 ? 'high' : 'low',
+          relatedStudentId: dto.studentId,
           institutionId,
         });
       }
@@ -103,6 +109,9 @@ export class CreateGradeUseCase {
               userId: admin.id,
               title: '🚨 Alerta Académico — Risco de Reprovação',
               description: `A média do aluno ${student.name} em ${subjectName} caiu para ${avg.toFixed(1)} valores. Recomenda-se acompanhamento extra urgente.`,
+              type: 'nota',
+              priority: 'high',
+              relatedStudentId: dto.studentId,
               institutionId,
             });
           }

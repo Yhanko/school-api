@@ -20,6 +20,7 @@ export class NotificationService {
     description: string,
     type: string = 'info',
     priority: string = 'low',
+    relatedStudentId?: string,
   ): Promise<void> {
     const notification = new NotificationEntity(
       '',
@@ -30,6 +31,7 @@ export class NotificationService {
       false,
       userId,
       institutionId,
+      relatedStudentId,
     );
     await this.notificationRepository.create(notification);
   }
@@ -40,6 +42,7 @@ export class NotificationService {
     description: string,
     type: string = 'info',
     priority: string = 'low',
+    relatedStudentId?: string,
   ): Promise<void> {
     // Busca todos os administradores e secretários da instituição
     const users = await this.userRepository.findByInstitution(institutionId);
@@ -57,6 +60,7 @@ export class NotificationService {
         false,
         admin.id,
         institutionId,
+        relatedStudentId,
       )
     );
 

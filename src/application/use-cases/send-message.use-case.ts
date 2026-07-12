@@ -37,7 +37,9 @@ export class SendMessageUseCase {
         data: {
           userId: dto.receiverId,
           title: `💬 Nova Mensagem de ${senderName}`,
-          description: `"${preview}"`,
+          description: `Recebeste uma nova mensagem: "${dto.content.substring(0, 50)}..."`,
+          type: 'mensagem',
+          priority: 'low',
           institutionId,
         },
       });

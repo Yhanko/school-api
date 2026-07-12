@@ -25,6 +25,7 @@ export class UpdateEventUseCase {
     const dataToUpdate: Partial<EventEntity> = {
       ...dto,
       date: dto.date ? new Date(dto.date) : undefined,
+      classIds: dto.classIds,
     };
 
     return this.eventRepository.update(id, dataToUpdate);

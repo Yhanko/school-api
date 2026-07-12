@@ -28,6 +28,8 @@ export class CreateEventUseCase {
       dto.location,
       dto.participants,
       institutionId,
+      undefined,
+      dto.classIds,
     );
 
     const createdEvent = await this.eventRepository.create(eventEntity);
@@ -52,6 +54,8 @@ export class CreateEventUseCase {
             userId: u.id,
             title: `📅 Novo Evento Escolar — ${dto.title}`,
             description: `A escola publicou um novo evento: "${dto.title}" agendado para ${dateFormatted}.${dto.location ? ` Local: ${dto.location}.` : ''}`,
+            type: 'atividade',
+            priority: 'low',
             institutionId,
           })),
         });

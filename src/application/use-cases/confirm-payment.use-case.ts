@@ -45,6 +45,9 @@ export class ConfirmPaymentUseCase {
             userId: student.parentId,
             title: `✅ ${typeLabel} Confirmada`,
             description: `O pagamento de ${payment.amount} Kz do educando ${student.name} foi confirmado pela secretaria. O recibo já está disponível.`,
+            type: 'pagamento',
+            priority: 'low',
+            relatedStudentId: payment.studentId,
             institutionId,
           },
         });
@@ -57,6 +60,9 @@ export class ConfirmPaymentUseCase {
             userId: payment.studentId,
             title: '✅ Pagamento Confirmado',
             description: `O teu pagamento de ${payment.amount} Kz foi validado pela secretaria. Obrigado!`,
+            type: 'pagamento',
+            priority: 'low',
+            relatedStudentId: payment.studentId,
             institutionId,
           },
         });
