@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: school-api
+    env: node
+    buildCommand: "./render-build.sh"
+    startCommand: "npm run start:prod"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: school-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      # Nota: Para os segredos (JWT, Cloudinary),
+      # eles devem ser preenchidos manualmente no dashboard do Render, 
+      # acessível após o Blueprint criar o serviço.
+      # Eles também podem ser ignorados aqui e configurados na UI 
+      # se você adicionar 'sync: false' mas por padrão, o render 
+      # não deleta envVars extras não definidos no blueprint.
+
+databases:
+  - name: school-db
+    databaseName: school_db
+    user: school_user
+    plan: free # Você pode ajustar o plano do banco de dados (free, starter, etc) se precisar.
