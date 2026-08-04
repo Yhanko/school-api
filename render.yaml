@@ -9,9 +9,7 @@ services:
         fromDatabase:
           name: school-db
           property: connectionString
-      - key: NODE_ENV
-        value: production
-      # Nota: Para os segredos (JWT, Cloudinary),
+      # Nota: Para os segredos (JWT, Cloudinary, NODE_ENV),
       # eles devem ser preenchidos manualmente no dashboard do Render, 
       # acessível após o Blueprint criar o serviço.
       # Eles também podem ser ignorados aqui e configurados na UI 
