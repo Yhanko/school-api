@@ -12,10 +12,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Allow all localhost ports (any of the 5 frontends) + production origins from env
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  // Allow all localhost ports + production origins specified in ALLOWED_ORIGINS env var
+  const rawOrigins = process.env.ALLOWED_ORIGINS ?? '';
+  const allowedOrigins = rawOrigins
+    ? rawOrigins.split(',').map(o => o.trim().replace(/\/$/, ''))
     : [];
+
+  // DEBUG: log on startup so you can verify in Render logs
+  console.log('[CORS] ALLOWED_ORIGINS raw value:', JSON.stringify(rawOrigins));
+  console.log('[CORS] Parsed allowed origins:', allowedOrigins);
 
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -23,8 +28,12 @@ async function bootstrap() {
       if (!origin) return callback(null, true);
       // Allow all localhost ports in development
       if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+      // Allow wildcard '*' in ALLOWED_ORIGINS
+      if (allowedOrigins.includes('*')) return callback(null, true);
       // Allow configured production origins
       if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      console.warn(`[CORS] BLOCKED origin: "${origin}" | allowed: ${JSON.stringify(allowedOrigins)}`);
       callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
