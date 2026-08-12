@@ -12,29 +12,24 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Allow all localhost ports + production origins specified in ALLOWED_ORIGINS env var
-  const rawOrigins = process.env.ALLOWED_ORIGINS ?? '';
-  const allowedOrigins = rawOrigins
-    ? rawOrigins.split(',').map(o => o.trim().replace(/\/$/, ''))
-    : [];
-
-  // DEBUG: log on startup so you can verify in Render logs
-  console.log('[CORS] ALLOWED_ORIGINS raw value:', JSON.stringify(rawOrigins));
-  console.log('[CORS] Parsed allowed origins:', allowedOrigins);
+  // Production origins are loaded from ALLOWED_ORIGINS env var (comma-separated, no trailing slashes)
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map(o => o.trim().replace(/\/$/, ''))
+    .filter(Boolean);
 
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests with no origin (mobile apps, Postman, curl)
+      // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
       if (!origin) return callback(null, true);
-      // Allow all localhost ports in development
-      if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
-      // Allow wildcard '*' in ALLOWED_ORIGINS
+      // Allow all localhost origins in development
+      if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return callback(null, true);
+      // Allow wildcard if explicitly set
       if (allowedOrigins.includes('*')) return callback(null, true);
       // Allow configured production origins
       if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      console.warn(`[CORS] BLOCKED origin: "${origin}" | allowed: ${JSON.stringify(allowedOrigins)}`);
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
+      callback(new Error(`CORS: origin "${origin}" not allowed`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
