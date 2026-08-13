@@ -31,6 +31,7 @@ import { join } from 'path';
 import { UploadsModule } from './uploads/uploads.module';
 import { ActivityLoggerModule } from './application/services/activity-logger.module';
 import { AcademicYearsModule } from './academic-years/academic-years.module';
+import { LeadsModule } from './leads/leads.module';
 
 @Module({
   imports: [
@@ -66,7 +67,8 @@ import { AcademicYearsModule } from './academic-years/academic-years.module';
     AiModule,
     ResourcesModule,
     UploadsModule,
-    ActivityLoggerModule
+    ActivityLoggerModule,
+    LeadsModule
   ],
   controllers: [AppController],
   providers: [AppService],

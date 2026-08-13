@@ -732,3 +732,19 @@ model ExamQuestion {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Lead {
+  id          String   @id @default(uuid())
+  name        String
+  schoolName  String
+  province    String
+  phone       String
+  email       String
+  students    Int
+  plan        String
+  notes       String?  @db.Text
+  status      String   @default("PENDING") // PENDING, CONTACTED, CONVERTED, REJECTED
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
