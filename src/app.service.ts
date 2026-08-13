@@ -18,4 +18,10 @@ export class AppService {
       orderBy: { createdAt: 'desc' }
     });
   }
+
+  async getPlans() {
+    return this.prisma.plan.findMany({
+      orderBy: { price: 'asc' }
+    });
+  }
 }

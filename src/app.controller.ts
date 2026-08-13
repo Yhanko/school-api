@@ -14,4 +14,9 @@ export class AppController {
   async getBroadcasts() {
     return this.appService.getActiveBroadcasts();
   }
+
+  @Get('plans')
+  async getPlans() {
+    return this.appService.getPlans();
+  }
 }
