@@ -49,27 +49,39 @@ export class UploadsController {
     }
   }))
   async uploadToCloudinary(@UploadedFile() file: Express.Multer.File) {
+    console.log('[Cloudinary Upload] Request received. File:', file ? `${file.originalname} (${file.size} bytes, ${file.mimetype})` : 'NO FILE');
+    console.log('[Cloudinary Upload] Buffer length:', file?.buffer?.length ?? 0);
+    
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
-    if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const hasSecret = !!process.env.CLOUDINARY_API_SECRET;
+    console.log('[Cloudinary Upload] Config — cloud_name:', cloudName, '| api_key:', apiKey ? 'SET' : 'MISSING', '| api_secret:', hasSecret ? 'SET' : 'MISSING');
+
+    if (!cloudName) {
       throw new BadRequestException('Cloudinary credentials are not configured in the server.');
     }
 
     // Configure Cloudinary dynamically so it picks up process.env correctly
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      cloud_name: cloudName,
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'regulations', resource_type: 'auto' },
+        { folder: 'profiles', resource_type: 'auto' },
         (error, result) => {
-          if (error) return reject(new BadRequestException('Failed to upload file to Cloudinary: ' + error.message));
+          if (error) {
+            console.error('[Cloudinary Upload] ERROR:', error);
+            return reject(new BadRequestException('Failed to upload file to Cloudinary: ' + error.message));
+          }
           if (!result) return reject(new BadRequestException('Upload returned empty result'));
+          console.log('[Cloudinary Upload] SUCCESS — secure_url:', result.secure_url);
           resolve({
             filename: result.public_id,
             path: result.secure_url,
