@@ -748,3 +748,12 @@ model Lead {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model GlobalSettings {
+  id                    String   @id @default(uuid())
+  platformName          String   @default("YhankoEduca")
+  supportEmail          String   @default("suporte@yhanko.com")
+  allowNewRegistrations Boolean  @default(true)
+  maintenanceMode       Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+}

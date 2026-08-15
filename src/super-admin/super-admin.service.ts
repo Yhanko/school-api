@@ -550,6 +550,29 @@ export class SuperAdminService {
 
     return reply;
   }
+
+  async getGlobalSettings() {
+    let settings = await this.prisma.globalSettings.findFirst();
+    if (!settings) {
+      settings = await this.prisma.globalSettings.create({
+        data: {}
+      });
+    }
+    return settings;
+  }
+
+  async updateGlobalSettings(data: any) {
+    const settings = await this.getGlobalSettings();
+    return this.prisma.globalSettings.update({
+      where: { id: settings.id },
+      data: {
+        platformName: data.platformName ?? settings.platformName,
+        supportEmail: data.supportEmail ?? settings.supportEmail,
+        allowNewRegistrations: data.allowNewRegistrations ?? settings.allowNewRegistrations,
+        maintenanceMode: data.maintenanceMode ?? settings.maintenanceMode,
+      }
+    });
+  }
 }
 
 
