@@ -109,15 +109,16 @@ export class UsersService {
         updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    const { employeeProfile, ...rest } = updateData;
+    const { employeeProfile, avatar, ...rest } = updateData;
 
     const updatePayload: any = { ...rest };
 
-    if (employeeProfile) {
+    if (employeeProfile || avatar) {
+        const photoUrlUpdate = avatar ? { photoUrl: avatar } : {};
         updatePayload.employeeProfile = {
             upsert: {
-                create: employeeProfile,
-                update: employeeProfile
+                create: { ...employeeProfile, ...photoUrlUpdate },
+                update: { ...employeeProfile, ...photoUrlUpdate }
             }
         };
     }
@@ -136,8 +137,8 @@ export class UsersService {
       updated.institutionId || undefined
     );
 
-    const { password: _, ...result } = updated;
-    return result;
+    const { password: _, employeeProfile: updatedProfile, ...result } = updated;
+    return { ...result, employeeProfile: updatedProfile, avatar: updatedProfile?.photoUrl || null };
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {

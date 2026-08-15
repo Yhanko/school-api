@@ -20,6 +20,7 @@ export class GetProfileUseCase {
         employeeProfile: {
           select: {
             phone: true,
+            photoUrl: true,
           }
         }
       },
@@ -29,19 +30,24 @@ export class GetProfileUseCase {
       throw new NotFoundException('User not found');
     }
 
+    const baseUser = {
+      ...user,
+      avatar: user.employeeProfile?.photoUrl || null
+    };
+
     switch (user.role) {
       case Role.STUDENT:
-        return this.getStudentProfile(userId, user);
+        return this.getStudentProfile(userId, baseUser);
       case Role.PARENT:
-        return this.getParentProfile(userId, user);
+        return this.getParentProfile(userId, baseUser);
       case Role.TEACHER:
-        return this.getTeacherProfile(userId, user);
+        return this.getTeacherProfile(userId, baseUser);
       case Role.ADMIN:
       case Role.SUPER_ADMIN:
       case Role.SECRETARY:
-        return this.getAdminProfile(userId, user);
+        return this.getAdminProfile(userId, baseUser);
       default:
-        return user;
+        return baseUser;
     }
   }
 
