@@ -274,12 +274,123 @@ export class SuperAdminService {
         }
       };
     }
+    
+    if (roleFilter === Role.TEACHER) {
+      includeObj.classesTeaching = {
+        include: {
+          enrollments: {
+            include: {
+              student: { select: { id: true, parentId: true } }
+            }
+          }
+        }
+      };
+      includeObj.classSubjects = {
+        include: {
+          class: {
+            include: {
+              enrollments: {
+                include: {
+                  student: { select: { id: true, parentId: true } }
+                }
+              }
+            }
+          }
+        }
+      };
+    }
 
-    return this.prisma.user.findMany({
+    if (roleFilter === Role.STUDENT) {
+      includeObj.parent = { select: { name: true } };
+      includeObj.enrollments = {
+        include: {
+          class: {
+            include: {
+              teachers: { select: { name: true } }
+            }
+          }
+        }
+      };
+    }
+
+    const users = await this.prisma.user.findMany({
       where: whereClause,
       include: includeObj,
       orderBy: { createdAt: 'desc' }
     });
+
+    if (roleFilter === Role.STUDENT) {
+      return users.map((user: any) => {
+        let className = 'N/A';
+        let gradeName = 'N/A';
+        const teacherNames = new Set<string>();
+
+        if (user.enrollments && user.enrollments.length > 0) {
+          const activeEnrollment = user.enrollments.find((e: any) => e.status === 'active') || user.enrollments[0];
+          if (activeEnrollment && activeEnrollment.class) {
+            className = activeEnrollment.class.name;
+            gradeName = activeEnrollment.class.grade || activeEnrollment.class.academicLevel || 'N/A';
+            if (activeEnrollment.class.teachers) {
+              activeEnrollment.class.teachers.forEach((t: any) => teacherNames.add(t.name));
+            }
+          }
+        }
+
+        const { enrollments, ...cleanUser } = user;
+        return {
+          ...cleanUser,
+          className,
+          gradeName,
+          teachers: Array.from(teacherNames),
+        };
+      });
+    }
+
+    if (roleFilter === Role.TEACHER) {
+      return users.map((user: any) => {
+        const studentIds = new Set<string>();
+        const parentIds = new Set<string>();
+
+        if (user.classesTeaching) {
+          user.classesTeaching.forEach((cls: any) => {
+            if (cls.enrollments) {
+              cls.enrollments.forEach((enrollment: any) => {
+                if (enrollment.student) {
+                  studentIds.add(enrollment.student.id);
+                  if (enrollment.student.parentId) {
+                    parentIds.add(enrollment.student.parentId);
+                  }
+                }
+              });
+            }
+          });
+        }
+
+        if (user.classSubjects) {
+          user.classSubjects.forEach((cs: any) => {
+            if (cs.class && cs.class.enrollments) {
+              cs.class.enrollments.forEach((enrollment: any) => {
+                if (enrollment.student) {
+                  studentIds.add(enrollment.student.id);
+                  if (enrollment.student.parentId) {
+                    parentIds.add(enrollment.student.parentId);
+                  }
+                }
+              });
+            }
+          });
+        }
+
+        const { classesTeaching, classSubjects, ...cleanUser } = user;
+        return {
+          ...cleanUser,
+          totalStudents: studentIds.size,
+          totalParents: parentIds.size,
+        };
+      });
+    }
+
+    return users;
   }
 
   async getPayments() {
