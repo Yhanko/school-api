@@ -7,6 +7,7 @@ import { ClassEntity } from '../../domain/entities/class.entity';
 import { Role } from '../../domain/entities/user.entity';
 import { ActivityLoggerService, LogAction } from '../services/activity-logger.service';
 import { AcademicYearsService } from '../../academic-years/academic-years.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CreateClassUseCase {
@@ -19,6 +20,7 @@ export class CreateClassUseCase {
     private readonly userRepository: IUserRepository,
     private readonly activityLogger: ActivityLoggerService,
     private readonly academicYearsService: AcademicYearsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(dto: CreateClassDto, institutionId: string): Promise<ClassEntity> {
@@ -82,10 +84,36 @@ export class CreateClassUseCase {
   }
 
   async executeGetByTeacher(teacherId: string, institutionId: string) {
+    // Get classes where this teacher teaches at least one subject via ClassSubject
+    const classSubjects = await this.prisma.classSubject.findMany({
+      where: { teacherId },
+      include: { class: { include: { academicYear: true, teachers: { select: { id: true, name: true } } } } }
+    });
+
+    if (classSubjects.length > 0) {
+      const classMap = new Map<string, any>();
+      for (const cs of classSubjects) {
+        if (cs.class && cs.class.institutionId === institutionId) {
+          classMap.set(cs.classId, cs.class);
+        }
+      }
+      if (classMap.size > 0) return Array.from(classMap.values());
+    }
+
+    // Fallback: check the many-to-many ClassTeachers relation
     const all = await this.classRepository.findByInstitution(institutionId);
     return all.filter((c: any) =>
       c.teachers?.some((t: any) => t.id === teacherId)
     );
+  }
+
+  async getTeacherSubjectsByClass(classId: string, teacherId: string) {
+    // Return only the subjects this specific teacher teaches in this class
+    const classSubjects = await this.prisma.classSubject.findMany({
+      where: { classId, teacherId },
+      include: { subject: true }
+    });
+    return classSubjects.map((cs: any) => cs.subject);
   }
 
   async executeGetById(id: string) {

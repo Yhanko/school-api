@@ -33,8 +33,15 @@ export class ClassesController {
     @Param('teacherId') teacherId: string,
     @CurrentUser() user: any,
   ) {
-    // Delegate to use case — returns classes where teacher is assigned
     return this.createClassUseCase.executeGetByTeacher(teacherId, user.institutionId);
+  }
+
+  @Get('my-classes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.TEACHER)
+  getMyClasses(@CurrentUser() user: any) {
+    // Allows teacher to fetch their own classes without knowing their ID
+    return this.createClassUseCase.executeGetByTeacher(user.sub, user.institutionId);
   }
 
   @Get(':id')
@@ -73,6 +80,17 @@ export class ClassesController {
     @CurrentUser() user: any,
   ) {
     return this.assignSubjectUseCase.getClassSubjects(classId, user.institutionId);
+  }
+
+  @Get(':id/subjects/teacher')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.TEACHER)
+  getTeacherSubjectsForClass(
+    @Param('id') classId: string,
+    @CurrentUser() user: any,
+  ) {
+    // Returns only the subjects that THIS teacher teaches in this class
+    return this.createClassUseCase.getTeacherSubjectsByClass(classId, user.sub);
   }
 
   @Post(':id/subjects')
