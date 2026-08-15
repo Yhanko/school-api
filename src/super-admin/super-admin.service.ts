@@ -306,7 +306,12 @@ export class SuperAdminService {
         include: {
           class: {
             include: {
-              teachers: { select: { name: true } }
+              teachers: { select: { name: true } },
+              classSubjects: {
+                include: {
+                  teacher: { select: { name: true } }
+                }
+              }
             }
           }
         }
@@ -332,6 +337,13 @@ export class SuperAdminService {
             gradeName = activeEnrollment.class.grade || activeEnrollment.class.academicLevel || 'N/A';
             if (activeEnrollment.class.teachers) {
               activeEnrollment.class.teachers.forEach((t: any) => teacherNames.add(t.name));
+            }
+            if (activeEnrollment.class.classSubjects) {
+              activeEnrollment.class.classSubjects.forEach((cs: any) => {
+                if (cs.teacher) {
+                  teacherNames.add(cs.teacher.name);
+                }
+              });
             }
           }
         }
