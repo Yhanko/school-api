@@ -254,11 +254,30 @@ export class SuperAdminService {
     if (roleFilter) {
       whereClause.role = roleFilter;
     }
+
+    const includeObj: any = {
+      institution: { select: { name: true, id: true } }
+    };
+
+    if (roleFilter === Role.PARENT) {
+      includeObj.children = {
+        include: {
+          enrollments: {
+            include: {
+              class: {
+                include: {
+                  teachers: { select: { name: true } }
+                }
+              }
+            }
+          }
+        }
+      };
+    }
+
     return this.prisma.user.findMany({
       where: whereClause,
-      include: {
-        institution: { select: { name: true, id: true } }
-      },
+      include: includeObj,
       orderBy: { createdAt: 'desc' }
     });
   }
