@@ -476,6 +476,81 @@ export class SuperAdminService {
       }
     };
   }
+
+  async convertLead(leadId: string, adminId?: string, ipAddress?: string) {
+    const lead = await this.prisma.lead.findUnique({ where: { id: leadId } });
+    if (!lead) throw new BadRequestException('Lead not found');
+    if (lead.status === 'CONVERTED') throw new BadRequestException('Lead already converted');
+
+    // Generate simple password for admin
+    const password = Math.random().toString(36).slice(-8);
+
+    // Call the createSchool logic
+    const dto = {
+      schoolName: lead.schoolName,
+      schoolEmail: lead.email,
+      schoolPhone: lead.phone,
+      schoolAddress: lead.province,
+      adminName: lead.name,
+      adminEmail: lead.email,
+      adminPassword: password,
+      planId: lead.plan
+    };
+
+    const result = await this.createSchool(dto, adminId, ipAddress);
+
+    // Update lead status
+    await this.prisma.lead.update({
+      where: { id: leadId },
+      data: { status: 'CONVERTED' }
+    });
+
+    return {
+      message: 'Lead successfully converted to School',
+      school: result.institution,
+      adminEmail: dto.adminEmail,
+      adminPassword: password,
+    };
+  }
+
+  async getTickets() {
+    return this.prisma.supportTicket.findMany({
+      include: {
+        institution: { select: { name: true } },
+        createdBy: { select: { name: true, email: true } },
+        messages: {
+          include: {
+            sender: { select: { name: true, role: true } }
+          },
+          orderBy: { createdAt: 'asc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async replyToTicket(ticketId: string, message: string, adminId: string, newStatus?: string) {
+    const ticket = await this.prisma.supportTicket.findUnique({ where: { id: ticketId } });
+    if (!ticket) throw new BadRequestException('Ticket not found');
+
+    const reply = await this.prisma.supportMessage.create({
+      data: {
+        message,
+        ticketId,
+        senderId: adminId,
+      }
+    });
+
+    if (newStatus && newStatus !== ticket.status) {
+      await this.prisma.supportTicket.update({
+        where: { id: ticketId },
+        data: { status: newStatus }
+      });
+    }
+
+    return reply;
+  }
 }
+
 
 

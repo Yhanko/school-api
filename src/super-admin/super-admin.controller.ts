@@ -140,4 +140,32 @@ export class SuperAdminController {
   async deletePlan(@Param('id') id: string) {
     return this.featuresService.deletePlan(id);
   }
+
+  @Post('leads/:id/convert')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async convertLead(@Param('id') id: string, @Req() req: any) {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const adminId = req.user?.id || req.user?.sub;
+    return this.superAdminService.convertLead(id, adminId, ipAddress);
+  }
+
+  @Get('tickets')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async getTickets() {
+    return this.superAdminService.getTickets();
+  }
+
+  @Post('tickets/:id/reply')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async replyToTicket(
+    @Param('id') id: string,
+    @Body() body: { message: string, status?: string },
+    @Req() req: any
+  ) {
+    const adminId = req.user?.id || req.user?.sub;
+    return this.superAdminService.replyToTicket(id, body.message, adminId, body.status);
+  }
 }
