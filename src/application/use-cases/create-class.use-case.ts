@@ -84,27 +84,58 @@ export class CreateClassUseCase {
   }
 
   async executeGetByTeacher(teacherId: string, institutionId: string) {
-    // Get classes where this teacher teaches at least one subject via ClassSubject
+    // Get unique classIds where this teacher teaches at least one subject
     const classSubjects = await this.prisma.classSubject.findMany({
       where: { teacherId },
-      include: { class: { include: { academicYear: true, teachers: { select: { id: true, name: true } } } } }
+      select: { classId: true },
+      distinct: ['classId'],
     });
 
-    if (classSubjects.length > 0) {
-      const classMap = new Map<string, any>();
-      for (const cs of classSubjects) {
-        if (cs.class && cs.class.institutionId === institutionId) {
-          classMap.set(cs.classId, cs.class);
-        }
-      }
-      if (classMap.size > 0) return Array.from(classMap.values());
-    }
+    let classIds = classSubjects
+      .map((cs: any) => cs.classId)
+      .filter(Boolean);
 
     // Fallback: check the many-to-many ClassTeachers relation
-    const all = await this.classRepository.findByInstitution(institutionId);
-    return all.filter((c: any) =>
-      c.teachers?.some((t: any) => t.id === teacherId)
-    );
+    if (classIds.length === 0) {
+      const allClasses = await this.prisma.class.findMany({
+        where: { institutionId, teachers: { some: { id: teacherId } } },
+        select: { id: true },
+      });
+      classIds = allClasses.map((c: any) => c.id);
+    }
+
+    if (classIds.length === 0) return [];
+
+    // Fetch full class data with enrolled students
+    const classes = await this.prisma.class.findMany({
+      where: { id: { in: classIds }, institutionId },
+      include: {
+        academicYear: true,
+        teachers: { select: { id: true, name: true, email: true } },
+        classSubjects: {
+          include: { subject: { select: { id: true, name: true } } }
+        },
+        enrollments: {
+          where: { status: 'active' },
+          include: {
+            student: {
+              select: { id: true, name: true, email: true }
+            }
+          }
+        }
+      }
+    });
+
+    // Normalize: expose `students` array directly on each class
+    return classes.map((cls: any) => ({
+      ...cls,
+      students: (cls.enrollments || []).map((e: any) => ({
+        id: e.student.id,
+        name: e.student.name,
+        email: e.student.email,
+        code: null,
+      })),
+    }));
   }
 
   async getTeacherSubjectsByClass(classId: string, teacherId: string) {
