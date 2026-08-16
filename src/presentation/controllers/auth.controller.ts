@@ -25,18 +25,18 @@ export class AuthController {
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   async verifyEmail(@Body() dto: VerifyEmailDto) {
-    return this.verifyEmailUseCase.execute(dto.email, dto.role);
+    return this.verifyEmailUseCase.execute(dto.email, dto.role as any);
   }
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.ACCEPTED)
   async forgotPassword(@Body() dto: VerifyEmailDto) {
-    return this.forgotPasswordUseCase.execute(dto.email, dto.role);
+    return this.forgotPasswordUseCase.execute(dto.email, dto.role as any);
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.resetPasswordUseCase.execute(dto.email, dto.role, dto.otp, dto.newPassword);
+    return this.resetPasswordUseCase.execute(dto.email, dto.role as any, dto.otp, dto.newPassword);
   }
 }
