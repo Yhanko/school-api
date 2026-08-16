@@ -4,6 +4,7 @@ export class InstitutionEntity {
     public readonly name: string,
     public readonly email?: string | null,
     public readonly address?: string | null,
+    public readonly nif?: string | null,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
   ) {}

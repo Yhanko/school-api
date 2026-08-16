@@ -16,6 +16,7 @@ model Institution {
   name                String
   email               String?
   phone               String?
+  nif                 String?
   address             String?
   iban                String?
   status              String               @default("active") // "active", "blocked"

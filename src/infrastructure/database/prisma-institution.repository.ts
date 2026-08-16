@@ -16,6 +16,7 @@ export class PrismaInstitutionRepository implements IInstitutionRepository {
       institution.name,
       institution.email,
       institution.address,
+      institution.nif,
       institution.createdAt,
       institution.updatedAt,
     );
@@ -27,6 +28,7 @@ export class PrismaInstitutionRepository implements IInstitutionRepository {
         name: institution.name,
         email: institution.email,
         address: institution.address,
+        nif: institution.nif,
       },
     });
 
@@ -35,6 +37,7 @@ export class PrismaInstitutionRepository implements IInstitutionRepository {
       created.name,
       created.email,
       created.address,
+      created.nif,
       created.createdAt,
       created.updatedAt,
     );
