@@ -90,7 +90,8 @@ export class SuperAdminCronService {
               'Yhanko',
               'Aviso de Subscrição',
               message,
-              [sub.institution.phone]
+              [sub.institution.phone],
+              sub.institutionId
             );
             this.logger.log(`Warning SMS sent to institution: ${sub.institution.name} for ${days} days left.`);
           }

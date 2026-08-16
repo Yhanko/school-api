@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSchoolDto } from '../presentation/dtos/create-school.dto';
 import { Role } from '../domain/entities/user.entity';
@@ -614,6 +614,50 @@ export class SuperAdminService {
     });
 
     return updated;
+  }
+
+  async getDebtors() {
+    try {
+      const debtors = await this.prisma.institution.findMany({
+        where: {
+          OR: [
+            { status: { in: ['payment_restricted', 'suspended', 'blocked'] } },
+            {
+              subscriptions: {
+                some: {
+                  endDate: { lt: new Date() },
+                  status: 'active'
+                }
+              }
+            }
+          ]
+        },
+        include: {
+          subscriptions: {
+            include: {
+              plan: true
+            }
+          },
+          activityLogs: {
+            where: {
+              action: 'SMS_SENT'
+            },
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 5
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      return debtors;
+    } catch (error) {
+      console.error(`Error fetching debtors`, error.stack);
+      throw new InternalServerErrorException('Failed to fetch debtors');
+    }
   }
 }
 

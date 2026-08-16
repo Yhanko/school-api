@@ -181,4 +181,11 @@ export class SuperAdminController {
     const adminId = req.user?.id || req.user?.sub;
     return this.superAdminService.updateSchoolStatus(id, body.status, adminId, ipAddress);
   }
+
+  @Get('billing/debtors')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async getDebtors() {
+    return this.superAdminService.getDebtors();
+  }
 }

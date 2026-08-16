@@ -50,6 +50,7 @@ export class SmsService {
     subject: string,
     customMessage: string,
     phoneNumbers: string[],
+    institutionId?: string,
   ): Promise<void> {
     const validNumbers = phoneNumbers.filter(
       (t) => t !== null && t !== undefined && t.trim() !== '',
@@ -74,13 +75,23 @@ export class SmsService {
         lote.map((telefone) => this.enviarSMS(telefone, finalMessage)),
       );
 
-      resultados.forEach((resultado, idx) => {
+      await Promise.all(resultados.map(async (resultado, idx) => {
         if (resultado.status === 'rejected') {
           this.logger.error(`[SMS] Falha ao enviar para ${lote[idx]}: ${resultado.reason?.message}`);
         } else {
           this.logger.log(`[SMS] Enviado com sucesso para ${lote[idx]}`);
+          if (institutionId) {
+            await this.prisma.activityLog.create({
+              data: {
+                action: 'SMS_SENT',
+                resource: 'SmsService',
+                details: `SMS enviado para ${lote[idx]} com o assunto: ${subject}`,
+                institutionId,
+              },
+            });
+          }
         }
-      });
+      }));
 
       if (i + BATCH_SIZE < validNumbers.length) {
         await new Promise((resolve) => setTimeout(resolve, PAUSA_MS));
