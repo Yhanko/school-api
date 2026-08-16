@@ -109,16 +109,19 @@ export class UsersService {
         updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
-    const { employeeProfile, avatar, ...rest } = updateData;
+    const { employeeProfile, avatar, profile, photoUrl, ...rest } = updateData;
 
     const updatePayload: any = { ...rest };
 
-    if (employeeProfile || avatar) {
-        const photoUrlUpdate = avatar ? { photoUrl: avatar } : {};
+    const photo = avatar || photoUrl || profile?.photoUrl || employeeProfile?.photoUrl;
+    const photoUrlUpdate = photo ? { photoUrl: photo } : {};
+    const profileData = { ...(profile || {}), ...(employeeProfile || {}) };
+
+    if (employeeProfile || profile || photo) {
         updatePayload.employeeProfile = {
             upsert: {
-                create: { ...employeeProfile, ...photoUrlUpdate },
-                update: { ...employeeProfile, ...photoUrlUpdate }
+                create: { ...profileData, ...photoUrlUpdate },
+                update: { ...profileData, ...photoUrlUpdate }
             }
         };
     }
@@ -138,7 +141,13 @@ export class UsersService {
     );
 
     const { password: _, employeeProfile: updatedProfile, ...result } = updated;
-    return { ...result, employeeProfile: updatedProfile, avatar: updatedProfile?.photoUrl || null };
+    return {
+      ...result,
+      employeeProfile: updatedProfile,
+      avatar: updatedProfile?.photoUrl || null,
+      photoUrl: updatedProfile?.photoUrl || null,
+      profile: updatedProfile
+    };
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {

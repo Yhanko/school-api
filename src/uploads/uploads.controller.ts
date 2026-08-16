@@ -32,9 +32,13 @@ export class UploadsController {
     }
   }))
   uploadFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo enviado');
+    }
     return {
       filename: file.filename,
       path: `/uploads/${file.filename}`,
+      url: `/uploads/${file.filename}`,
       originalname: file.originalname,
       mimetype: file.mimetype,
       size: file.size
@@ -52,25 +56,47 @@ export class UploadsController {
     console.log('[Cloudinary Upload] Request received. File:', file ? `${file.originalname} (${file.size} bytes, ${file.mimetype})` : 'NO FILE');
     console.log('[Cloudinary Upload] Buffer length:', file?.buffer?.length ?? 0);
     
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
+    if (!file || !file.buffer) {
+      throw new BadRequestException('Nenhum arquivo enviado ou arquivo corrompido.');
     }
 
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-    const apiKey = process.env.CLOUDINARY_API_KEY;
-    const hasSecret = !!process.env.CLOUDINARY_API_SECRET;
-    console.log('[Cloudinary Upload] Config — cloud_name:', cloudName, '| api_key:', apiKey ? 'SET' : 'MISSING', '| api_secret:', hasSecret ? 'SET' : 'MISSING');
+    const cloudName =
+      process.env.CLOUDINARY_CLOUD_NAME ||
+      process.env.CLOUDINARY_NAME ||
+      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET;
+    const cloudinaryUrl = process.env.CLOUDINARY_URL;
 
-    if (!cloudName) {
-      throw new BadRequestException('Cloudinary credentials are not configured in the server.');
+    console.log(
+      '[Cloudinary Upload] Config — cloud_name:',
+      cloudName,
+      '| api_key:',
+      apiKey ? 'SET' : 'MISSING',
+      '| api_secret:',
+      apiSecret ? 'SET' : 'MISSING',
+      '| cloudinary_url:',
+      cloudinaryUrl ? 'SET' : 'MISSING'
+    );
+
+    if (!cloudName && !cloudinaryUrl) {
+      throw new BadRequestException(
+        'Cloudinary credentials are not configured in the server. Please set CLOUDINARY_CLOUD_NAME (or CLOUDINARY_NAME) and CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET in Railway.'
+      );
     }
 
     // Configure Cloudinary dynamically so it picks up process.env correctly
-    cloudinary.config({
-      cloud_name: cloudName,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-    });
+    if (cloudinaryUrl) {
+      cloudinary.config({
+        cloudinary_url: cloudinaryUrl,
+      });
+    } else {
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+      });
+    }
 
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -78,19 +104,35 @@ export class UploadsController {
         (error, result) => {
           if (error) {
             console.error('[Cloudinary Upload] ERROR:', error);
-            return reject(new BadRequestException('Failed to upload file to Cloudinary: ' + error.message));
+            return reject(
+              new BadRequestException(
+                'Falha ao enviar arquivo para o Cloudinary: ' +
+                  (error.message || JSON.stringify(error))
+              )
+            );
           }
-          if (!result) return reject(new BadRequestException('Upload returned empty result'));
+          if (!result) return reject(new BadRequestException('Upload retornou resultado vazio'));
           console.log('[Cloudinary Upload] SUCCESS — secure_url:', result.secure_url);
           resolve({
             filename: result.public_id,
             path: result.secure_url,
+            url: result.secure_url,
+            secure_url: result.secure_url,
             originalname: file.originalname,
             mimetype: file.mimetype,
             size: result.bytes
           });
         }
       );
+
+      uploadStream.on('error', (streamErr) => {
+        console.error('[Cloudinary Stream Error]:', streamErr);
+        reject(
+          new BadRequestException(
+            'Erro no stream do Cloudinary: ' + (streamErr.message || 'Desconhecido')
+          )
+        );
+      });
 
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
