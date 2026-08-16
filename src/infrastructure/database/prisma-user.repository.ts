@@ -23,7 +23,9 @@ export class PrismaUserRepository implements IUserRepository {
       user.updatedAt,
       undefined,
       undefined,
-      user.code
+      user.code,
+      user.resetToken,
+      user.resetTokenExpires
     );
     (entity as any).profile = user.employeeProfile;
     return entity;
@@ -45,7 +47,9 @@ export class PrismaUserRepository implements IUserRepository {
       user.updatedAt,
       undefined,
       undefined,
-      user.code
+      user.code,
+      user.resetToken,
+      user.resetTokenExpires
     );
     (entity as any).profile = user.employeeProfile;
     return entity;
@@ -66,7 +70,9 @@ export class PrismaUserRepository implements IUserRepository {
         user.updatedAt,
         undefined,
         undefined,
-        user.code
+        user.code,
+        user.resetToken,
+        user.resetTokenExpires
       );
       (entity as any).profile = user.employeeProfile;
       return entity;
@@ -140,7 +146,9 @@ export class PrismaUserRepository implements IUserRepository {
       created.updatedAt,
       undefined,
       undefined,
-      created.code
+      created.code,
+      created.resetToken,
+      created.resetTokenExpires
     );
   }
 
@@ -176,7 +184,9 @@ export class PrismaUserRepository implements IUserRepository {
       updated.updatedAt,
       undefined,
       undefined,
-      updated.code
+      updated.code,
+      updated.resetToken,
+      updated.resetTokenExpires
     );
     (entity as any).profile = updated.employeeProfile;
     return entity;

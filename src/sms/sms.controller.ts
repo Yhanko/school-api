@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Get, UseGuards, Request } from '@nestjs/common';
 import { SmsService } from './sms.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Assuming JWT is used
+import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard'; // Assuming JWT is used
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 export class SendSmsDto {
@@ -32,7 +32,7 @@ export class SmsController {
   @UseGuards(JwtAuthGuard)
   @Get('contacts')
   @ApiOperation({ summary: 'Get a list of users with phone numbers' })
-  async getContacts(@Request() req) {
+  async getContacts(@Request() req: any) {
     return this.smsService.getContacts(req.user.institutionId);
   }
 }

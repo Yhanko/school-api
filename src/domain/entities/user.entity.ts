@@ -24,5 +24,7 @@ export class UserEntity {
     public readonly parentId?: string | null,
     public readonly enrollments?: any[] | null,
     public readonly code?: string | null,
+    public readonly resetToken?: string | null,
+    public readonly resetTokenExpires?: Date | null,
   ) {}
 }

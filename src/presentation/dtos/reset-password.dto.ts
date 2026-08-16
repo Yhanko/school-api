@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
 import { Role } from '@prisma/client';
 
 export class ResetPasswordDto {
@@ -7,10 +7,13 @@ export class ResetPasswordDto {
   email: string;
 
   @IsEnum(Role)
-  @IsNotEmpty()
-  role: Role;
+  @IsOptional()
+  role?: Role;
 
   @IsNotEmpty()
   @MinLength(6)
   newPassword: string;
+
+  @IsNotEmpty()
+  otp: string;
 }

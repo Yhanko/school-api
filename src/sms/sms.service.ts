@@ -109,7 +109,7 @@ export class SmsService {
         id: u.id,
         name: u.name,
         role: u.role,
-        phone: u.employeeProfile.phone,
+        phone: u.employeeProfile!.phone,
       }));
   }
 }

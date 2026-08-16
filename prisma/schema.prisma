@@ -96,6 +96,9 @@ model User {
 
   classSubjects  ClassSubject[] @relation("TeacherClassSubjects")
 
+  resetToken        String?
+  resetTokenExpires DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

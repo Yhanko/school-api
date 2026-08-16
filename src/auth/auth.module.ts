@@ -5,6 +5,7 @@ import { AuthController } from '../presentation/controllers/auth.controller';
 import { LoginUseCase } from '../application/use-cases/login.use-case';
 import { VerifyEmailUseCase } from '../application/use-cases/verify-email.use-case';
 import { ResetPasswordUseCase } from '../application/use-cases/reset-password.use-case';
+import { ForgotPasswordUseCase } from '../application/use-cases/forgot-password.use-case';
 import { JwtTokenService } from '../infrastructure/services/jwt-token.service';
 import { BcryptHashService } from '../infrastructure/services/bcrypt-hash.service';
 import { PrismaUserRepository } from '../infrastructure/database/prisma-user.repository';
@@ -12,11 +13,13 @@ import { IUserRepository } from '../domain/repositories/user.repository.interfac
 import { IHashService } from '../application/interfaces/hash.service.interface';
 import { ITokenService } from '../application/interfaces/token.service.interface';
 import { PrismaModule } from '../prisma/prisma.module';
+import { SmsModule } from '../sms/sms.module';
 import { JwtStrategy } from '../infrastructure/security/jwt.strategy';
 
 @Module({
   imports: [
     PrismaModule,
+    SmsModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'fallback_secret',
@@ -28,6 +31,7 @@ import { JwtStrategy } from '../infrastructure/security/jwt.strategy';
     LoginUseCase,
     VerifyEmailUseCase,
     ResetPasswordUseCase,
+    ForgotPasswordUseCase,
     {
       provide: IUserRepository,
       useClass: PrismaUserRepository,

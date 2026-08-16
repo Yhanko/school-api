@@ -16,7 +16,7 @@ export class ResetPasswordUseCase {
     private readonly activityLogger: ActivityLoggerService,
   ) {}
 
-  async execute(email: string, role: Role, newPassword: string): Promise<{ success: boolean }> {
+  async execute(email: string, role: Role, otp: string, newPassword: string): Promise<{ success: boolean }> {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
@@ -31,11 +31,23 @@ export class ResetPasswordUseCase {
       }
     }
 
+    if (!user.resetToken || user.resetToken !== otp) {
+      throw new UnauthorizedException('Código de verificação inválido.');
+    }
+
+    if (user.resetTokenExpires && user.resetTokenExpires < new Date()) {
+      throw new UnauthorizedException('Código de verificação expirado.');
+    }
+
     const hashedPassword = await this.hashService.hash(newPassword);
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: { 
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpires: null,
+      },
     });
 
     await this.activityLogger.logAction(
