@@ -100,4 +100,25 @@ export class SuperAdminCronService {
       this.logger.error('Failed to run subscription warnings cron job', error);
     }
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async cleanupOldActivityLogs() {
+    this.logger.log('Running daily cleanup for old activity logs...');
+    try {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const deleted = await this.prisma.activityLog.deleteMany({
+        where: {
+          createdAt: {
+            lt: sevenDaysAgo,
+          },
+        },
+      });
+
+      this.logger.log(`Cleaned up ${deleted.count} old activity logs.`);
+    } catch (error) {
+      this.logger.error('Failed to clean up old activity logs', error);
+    }
+  }
 }
