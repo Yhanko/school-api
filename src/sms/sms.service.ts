@@ -94,33 +94,22 @@ export class SmsService {
     const users = await this.prisma.user.findMany({
       where: {
         institutionId,
-        OR: [
-          { profile: { phone: { not: null, notIn: [''] } } },
-          { employeeProfile: { phone: { not: null, notIn: [''] } } },
-        ]
+        employeeProfile: {
+          isNot: null,
+        },
       },
       include: {
-        profile: true,
         employeeProfile: true,
       },
     });
 
     return users
-      .map((u) => {
-        let phone = '';
-        if (u.profile && u.profile.phone) {
-          phone = u.profile.phone;
-        } else if (u.employeeProfile && u.employeeProfile.phone) {
-          phone = u.employeeProfile.phone;
-        }
-
-        return {
-          id: u.id,
-          name: u.name,
-          role: u.role,
-          phone: phone,
-        };
-      })
-      .filter((contact) => contact.phone.trim() !== '');
+      .filter((u) => u.employeeProfile?.phone)
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        role: u.role,
+        phone: u.employeeProfile!.phone as string,
+      }));
   }
 }
