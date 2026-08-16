@@ -585,6 +585,36 @@ export class SuperAdminService {
       }
     });
   }
+
+  async updateSchoolStatus(id: string, status: string, adminId?: string, ipAddress?: string) {
+    const validStatuses = ['active', 'suspended', 'payment_restricted', 'blocked'];
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException('Status inválido');
+    }
+
+    const institution = await this.prisma.institution.findUnique({ where: { id } });
+    if (!institution) {
+      throw new BadRequestException('Instituição não encontrada');
+    }
+
+    const updated = await this.prisma.institution.update({
+      where: { id },
+      data: { status }
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        action: 'UPDATE_SCHOOL_STATUS',
+        resource: 'Institution',
+        details: `School ${institution.name} status changed from ${institution.status} to ${status}.`,
+        institutionId: id,
+        userId: adminId,
+        ipAddress: ipAddress || '127.0.0.1',
+      },
+    });
+
+    return updated;
+  }
 }
 
 

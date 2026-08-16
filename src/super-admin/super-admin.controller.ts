@@ -168,4 +168,17 @@ export class SuperAdminController {
     const adminId = req.user?.id || req.user?.sub;
     return this.superAdminService.replyToTicket(id, body.message, adminId, body.status);
   }
+
+  @Put('schools/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async updateSchoolStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+    @Req() req: any
+  ) {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const adminId = req.user?.id || req.user?.sub;
+    return this.superAdminService.updateSchoolStatus(id, body.status, adminId, ipAddress);
+  }
 }

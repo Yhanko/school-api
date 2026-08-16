@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Patch, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Patch, UseGuards, Get } from '@nestjs/common';
 import { CreateInstitutionUseCase } from '../../application/use-cases/create-institution.use-case';
 import { CreateInstitutionDto } from '../dtos/create-institution.dto';
 import { JwtAuthGuard } from '../../infrastructure/security/jwt-auth.guard';
@@ -29,5 +29,26 @@ export class InstitutionsController {
       where: { id: user.institutionId },
       data: updateData,
     });
+  }
+
+  @Get('me/subscription')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async getMySubscription(@CurrentUser() user: any) {
+    const institution = await this.prisma.institution.findUnique({
+      where: { id: user.institutionId },
+      include: {
+        subscriptions: {
+          include: { plan: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      }
+    });
+    
+    return {
+      institutionStatus: institution?.status,
+      currentSubscription: institution?.subscriptions[0] || null
+    };
   }
 }
