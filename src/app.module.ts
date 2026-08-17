@@ -38,6 +38,7 @@ import { ActivityLoggerModule } from './application/services/activity-logger.mod
 import { AcademicYearsModule } from './academic-years/academic-years.module';
 import { LeadsModule } from './leads/leads.module';
 import { SmsModule } from './sms/sms.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -85,7 +86,8 @@ import { SmsModule } from './sms/sms.module';
     UploadsModule,
     ActivityLoggerModule,
     LeadsModule,
-    SmsModule
+    SmsModule,
+    EmailModule
   ],
   controllers: [AppController],
   providers: [
