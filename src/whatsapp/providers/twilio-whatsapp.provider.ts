@@ -24,7 +24,8 @@ export class TwilioWhatsappProvider implements IWhatsappProvider {
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
 
     const data = new URLSearchParams();
-    data.append('To', `whatsapp:${to.replace('+', '')}`);
+    const formattedTo = to.startsWith('+') ? to : `+${to}`;
+    data.append('To', `whatsapp:${formattedTo}`);
     data.append('From', fromNumber.startsWith('whatsapp:') ? fromNumber : `whatsapp:${fromNumber.replace('+', '')}`);
     data.append('Body', message);
 

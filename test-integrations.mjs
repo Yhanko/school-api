@@ -20,7 +20,7 @@ const CONFIG = {
   OMBALA_BASE_URL:      process.env.OMBALA_BASE_URL  || 'https://api.useombala.ao',
   OMBALA_API_TOKEN:     process.env.OMBALA_API_TOKEN,
   OMBALA_FROM:          process.env.OMBALA_FROM       || 'ESCOLA',
-  TARGET_PHONE:  '+244943558106',
+  TARGET_PHONE:  '+244947315059',
   TARGET_EMAIL:  'romeucajamba@gmail.com',
 };
 
@@ -61,20 +61,19 @@ async function testWhatsapp() {
   if (!TWILIO_ACCOUNT_SID) { log('❌','WHATSAPP','TWILIO_ACCOUNT_SID não configurado'); failed++; return; }
 
   let authHeader;
-  if (TWILIO_API_KEY && TWILIO_API_SECRET) {
-    authHeader = `Basic ${Buffer.from(`${TWILIO_API_KEY}:${TWILIO_API_SECRET}`).toString('base64')}`;
-    log('ℹ️ ','WHATSAPP','Usando autenticação via API Key');
-  } else if (TWILIO_AUTH_TOKEN) {
-    authHeader = `Basic ${Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64')}`;
-    log('ℹ️ ','WHATSAPP','Usando autenticação via Auth Token');
+  if (TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+    authHeader = `Basic ${Buffer.from(`${TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64')}`;
+    log('ℹ️ ','WHATSAPP','Usando autenticação via Auth Token principal');
   } else { log('❌','WHATSAPP','Nenhuma credencial encontrada'); failed++; return; }
 
-  const toNum = CONFIG.TARGET_PHONE.replace('+', '');
-  const from  = CONFIG.TWILIO_WHATSAPP_FROM.startsWith('whatsapp:') ? CONFIG.TWILIO_WHATSAPP_FROM : `whatsapp:${CONFIG.TWILIO_WHATSAPP_FROM.replace('+','')}`;
+  // Para Twilio (WhatsApp), o número DEVE ter o sinal + (E.164)
+  const toNum = CONFIG.TARGET_PHONE.startsWith('+') ? CONFIG.TARGET_PHONE : `+${CONFIG.TARGET_PHONE}`;
+  const from  = CONFIG.TWILIO_WHATSAPP_FROM.startsWith('whatsapp:') ? CONFIG.TWILIO_WHATSAPP_FROM : `whatsapp:${CONFIG.TWILIO_WHATSAPP_FROM}`;
   const data  = new URLSearchParams();
   data.append('To',   `whatsapp:${toNum}`);
   data.append('From', from);
-  data.append('Body', `🎉 *Teste de Integração - YhankoEduca*\n\nOlá Romeu! O envio de mensagens via *WhatsApp (Twilio)* está a funcionar na plataforma.\n\n📅 ${new Date().toLocaleString('pt-AO')}`);
+  
+  data.append('Body', `Your Yummy Cupcakes Company order of 1 dozen frosted cupcakes has shipped and should be delivered on July 10, 2019. Details: http://www.yummycupcakes.com/`);
 
   try {
     const r = await axios.post(
