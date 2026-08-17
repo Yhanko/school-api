@@ -22,6 +22,14 @@ model Institution {
   status              String               @default("active") // "active", "blocked"
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  
+  // Twilio Integration
+  twilioAccountSid     String?
+  twilioAuthToken      String?
+  twilioApiKey         String?
+  twilioApiSecret      String?
+  twilioWhatsappNumber String?
+  
   users               User[]
   classes             Class[]
   events              Event[]

@@ -39,6 +39,7 @@ import { AcademicYearsModule } from './academic-years/academic-years.module';
 import { LeadsModule } from './leads/leads.module';
 import { SmsModule } from './sms/sms.module';
 import { EmailModule } from './email/email.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -87,7 +88,8 @@ import { EmailModule } from './email/email.module';
     ActivityLoggerModule,
     LeadsModule,
     SmsModule,
-    EmailModule
+    EmailModule,
+    WhatsappModule
   ],
   controllers: [AppController],
   providers: [
