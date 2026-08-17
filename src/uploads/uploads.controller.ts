@@ -19,6 +19,14 @@ export class UploadsController {
   
   @Post()
   @UseInterceptors(FileInterceptor('file', {
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException('Invalid file type. Only images and PDFs are allowed.'), false);
+      }
+    },
     storage: diskStorage({
       destination: './uploads',
       filename: (req, file, cb) => {
@@ -47,6 +55,14 @@ export class UploadsController {
 
   @Post('cloudinary')
   @UseInterceptors(FileInterceptor('file', {
+    fileFilter: (req, file, cb) => {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException('Invalid file type. Only images and PDFs are allowed.'), false);
+      }
+    },
     storage: memoryStorage(),
     limits: {
       fileSize: 10 * 1024 * 1024, // 10MB limit

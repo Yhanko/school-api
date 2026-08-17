@@ -9,8 +9,18 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import helmet from 'helmet';
+import { json, urlencoded } from 'express';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security Headers
+  app.use(helmet());
+
+  // Payload limits (DoS protection)
+  app.use(json({ limit: '5mb' }));
+  app.use(urlencoded({ extended: true, limit: '5mb' }));
 
   // Production origins are loaded from ALLOWED_ORIGINS env var (comma-separated, no trailing slashes)
   const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
