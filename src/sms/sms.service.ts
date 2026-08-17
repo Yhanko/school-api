@@ -30,7 +30,8 @@ export class SmsService {
     try {
       const numeroNormalizado = telefone
         .replace(/[\+\s\-]/g, '')
-        .replace(/^0+/, '');
+        .replace(/^0+/, '')
+        .replace(/^244/, '');
         
       await this.ombalaClient.post('/v1/messages', {
         message: mensagem,

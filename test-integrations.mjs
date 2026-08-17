@@ -98,7 +98,7 @@ async function testSms() {
     log('⚠️ ','SMS','OMBALA_API_TOKEN não configurada — a ignorar este teste.');
     return;
   }
-  const num = CONFIG.TARGET_PHONE.replace(/[\+\s\-]/g,'').replace(/^0+/,'');
+  const num = CONFIG.TARGET_PHONE.replace(/[\+\s\-]/g,'').replace(/^0+/,'').replace(/^244/,'');
   try {
     await axios.post(`${CONFIG.OMBALA_BASE_URL}/v1/messages`, {
       message: `[YhankoEduca] Teste SMS - A integracao com Ombala esta a funcionar! ${new Date().toLocaleString('pt-AO')}`,
