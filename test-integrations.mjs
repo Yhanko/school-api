@@ -73,7 +73,7 @@ async function testWhatsapp() {
   data.append('To',   `whatsapp:${toNum}`);
   data.append('From', from);
   
-  data.append('Body', `Your Yummy Cupcakes Company order of 1 dozen frosted cupcakes has shipped and should be delivered on July 10, 2019. Details: http://www.yummycupcakes.com/`);
+  data.append('Body', `🎉 *Teste de Integração - YhankoEduca*\n\nOlá Romeu! A sua sessão do WhatsApp Sandbox está oficialmente ativa e o nosso código funcionou perfeitamente! 🚀\n\n📅 ${new Date().toLocaleString('pt-AO')}`);
 
   try {
     const r = await axios.post(
