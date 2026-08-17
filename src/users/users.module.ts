@@ -16,9 +16,11 @@ import { IEmployeeProfileRepository } from '../domain/repositories/employee-prof
 import { PrismaClassRepository } from '../infrastructure/database/prisma-class.repository';
 import { IClassRepository } from '../domain/repositories/class.repository.interface';
 import { AcademicYearsModule } from '../academic-years/academic-years.module';
+import { EmailModule } from '../email/email.module';
+import { SmsModule } from '../sms/sms.module';
 
 @Module({
-  imports: [PrismaModule, InstitutionsModule, AcademicYearsModule],
+  imports: [PrismaModule, InstitutionsModule, AcademicYearsModule, EmailModule, SmsModule],
   providers: [
     UsersService,
     CreateAdminUseCase,

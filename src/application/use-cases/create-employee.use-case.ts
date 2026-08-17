@@ -8,6 +8,8 @@ import { EmployeeProfileEntity } from '../../domain/entities/employee-profile.en
 import { CreateEmployeeDto } from '../../presentation/dtos/create-employee.dto';
 import { IClassRepository } from '../../domain/repositories/class.repository.interface';
 import { ActivityLoggerService, LogAction } from '../services/activity-logger.service';
+import { EmailService } from '../../email/email.service';
+import { SmsService } from '../../sms/sms.service';
 
 @Injectable()
 export class CreateEmployeeUseCase {
@@ -23,6 +25,8 @@ export class CreateEmployeeUseCase {
     @Inject(IClassRepository)
     private readonly classRepository: IClassRepository,
     private readonly activityLogger: ActivityLoggerService,
+    private readonly emailService: EmailService,
+    private readonly smsService: SmsService,
   ) {}
 
   async execute(dto: CreateEmployeeDto, institutionId: string): Promise<Omit<UserEntity, 'password'>> {
@@ -93,8 +97,33 @@ export class CreateEmployeeUseCase {
       institutionId
     );
 
+    // 6.75 Send notifications
+    this.sendNotifications(dto, institution.name).catch((err) => {
+      console.error('Failed to send employee welcome notifications:', err);
+    });
+
     // 7. Return sanitized user with profile
     const { password, ...result } = createdUser;
     return { ...result, profile: createdProfile } as any;
+  }
+
+  private async sendNotifications(dto: CreateEmployeeDto, institutionName: string) {
+    const subject = `Bem-vindo à equipa do ${institutionName}`;
+    const emailHtml = (name: string, pass: string) => `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Olá, ${name}!</h2>
+        <p>A sua conta como <b>${dto.role}</b> no <b>${institutionName}</b> foi criada com sucesso.</p>
+        <p>A sua senha de acesso é: <b>${pass}</b></p>
+        <p style="color: red; font-size: 12px;">Por motivos de segurança, recomendamos que altere a sua senha no primeiro acesso.</p>
+      </div>
+    `;
+    const smsMessage = (pass: string) => `Bem-vindo(a) a equipa do ${institutionName}! A sua senha de acesso e: ${pass}. Recomendamos alterar no primeiro acesso.`;
+
+    if (dto.email) {
+      await this.emailService.sendEmail(dto.email, subject, emailHtml(dto.name, dto.password)).catch(console.error);
+    }
+    if (dto.phone) {
+      await this.smsService.sendBulkSms(institutionName, "Bem-vindo", smsMessage(dto.password), [dto.phone]).catch(console.error);
+    }
   }
 }

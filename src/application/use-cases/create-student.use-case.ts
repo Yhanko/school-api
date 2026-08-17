@@ -7,6 +7,8 @@ import { EmployeeProfileEntity } from '../../domain/entities/employee-profile.en
 import { CreateStudentDto } from '../../presentation/dtos/create-student.dto';
 import { ActivityLoggerService, LogAction } from '../services/activity-logger.service';
 import { AcademicYearsService } from '../../academic-years/academic-years.service';
+import { EmailService } from '../../email/email.service';
+import { SmsService } from '../../sms/sms.service';
 
 @Injectable()
 export class CreateStudentUseCase {
@@ -19,6 +21,8 @@ export class CreateStudentUseCase {
     private readonly hashService: IHashService,
     private readonly academicYearsService: AcademicYearsService,
     private readonly activityLogger: ActivityLoggerService,
+    private readonly emailService: EmailService,
+    private readonly smsService: SmsService,
   ) {}
 
   async execute(dto: CreateStudentDto, institutionId: string): Promise<Omit<UserEntity, 'password'>> {
@@ -75,7 +79,19 @@ export class CreateStudentUseCase {
     const hashedPassword = await this.hashService.hash(dto.password);
 
     // 5. Create student profile
-    const studentProfile = new EmployeeProfileEntity('', '', dto.phone, undefined, undefined, undefined, undefined, dto.city, undefined, undefined);
+    const studentProfile = new EmployeeProfileEntity(
+      '',           // id
+      '',           // userId
+      dto.phone,    // phone
+      undefined,    // address
+      dto.photoUrl, // photoUrl
+      undefined,    // university
+      undefined,    // degree
+      undefined,    // educationPeriod
+      dto.city,     // city
+      undefined,    // cvUrl
+      undefined     // biUrl
+    );
 
     let enrollments: any[] | undefined = undefined;
 
@@ -117,8 +133,44 @@ export class CreateStudentUseCase {
       institutionId
     );
 
+    // 8.5 Send notifications
+    this.sendNotifications(dto, institution.name).catch((err) => {
+      // Non-blocking catch
+      console.error('Failed to send welcome notifications:', err);
+    });
+
     // 9. Return sanitized user
     const { password, ...result } = createdUser;
     return result as any;
+  }
+
+  private async sendNotifications(dto: CreateStudentDto, institutionName: string) {
+    const subject = `Bem-vindo ao ${institutionName}`;
+    const emailHtml = (name: string, pass: string) => `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Olá, ${name}!</h2>
+        <p>A sua conta no <b>${institutionName}</b> foi criada com sucesso.</p>
+        <p>A sua senha de acesso é: <b>${pass}</b></p>
+        <p style="color: red; font-size: 12px;">Por motivos de segurança, recomendamos que altere a sua senha no primeiro acesso.</p>
+      </div>
+    `;
+    const smsMessage = (pass: string) => `Bem-vindo(a) ao ${institutionName}! A sua senha de acesso e: ${pass}. Recomendamos que a altere no primeiro acesso.`;
+
+    // 1. Notify Student
+    if (dto.email) {
+      await this.emailService.sendEmail(dto.email, subject, emailHtml(dto.name, dto.password)).catch(console.error);
+    }
+    if (dto.phone) {
+      // Usa o sendBulkSms para mandar SMS para um número
+      await this.smsService.sendBulkSms(institutionName, "Bem-vindo", smsMessage(dto.password), [dto.phone]).catch(console.error);
+    }
+
+    // 2. Notify Parent if created
+    if (dto.parentEmail && dto.parentPassword && dto.parentName) {
+      await this.emailService.sendEmail(dto.parentEmail, subject, emailHtml(dto.parentName, dto.parentPassword)).catch(console.error);
+    }
+    if (dto.parentPhone && dto.parentPassword) {
+      await this.smsService.sendBulkSms(institutionName, "Bem-vindo", smsMessage(dto.parentPassword), [dto.parentPhone]).catch(console.error);
+    }
   }
 }

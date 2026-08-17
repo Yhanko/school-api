@@ -62,6 +62,15 @@ export class CreateGradeUseCase {
       const termLabel = dto.term === 'first' ? '1º Trimestre' : dto.term === 'second' ? '2º Trimestre' : '3º Trimestre';
       const gradeEmoji = dto.value >= 14 ? '🌟' : dto.value >= 10 ? '📘' : '⚠️';
 
+      const typeLabels: Record<string, string> = {
+        'AC': 'Avaliação Contínua',
+        'MAC': 'Média de Avaliação Contínua',
+        'CPP': 'Classificação da Prova do Professor',
+        'CPE': 'Classificação da Prova de Escola',
+        'PT': 'Prova Trimestral'
+      };
+      const typeLabel = typeLabels[dto.type.toUpperCase()] ? `${dto.type.toUpperCase()} – ${typeLabels[dto.type.toUpperCase()]}` : dto.type;
+
       const studentWithParent = await this.prisma.user.findUnique({
         where: { id: dto.studentId },
         select: { parentId: true },
@@ -73,7 +82,7 @@ export class CreateGradeUseCase {
       notificationsToCreate.push({
         userId: dto.studentId,
         title: `${gradeEmoji} Nova Nota Lançada — ${subjectName}`,
-        description: `Recebeste a nota ${dto.value} valores em ${subjectName} (${termLabel}). ${dto.value >= 10 ? 'Bom trabalho!' : 'Recomenda-se mais estudo nesta disciplina.'}`,
+        description: `Nova nota lançada; ${subjectName}; Tipo: ${typeLabel}; Nota: ${dto.value} valores (${termLabel}).`,
         type: 'nota',
         priority: dto.value < 10 ? 'high' : 'low',
         relatedStudentId: dto.studentId,
@@ -85,7 +94,7 @@ export class CreateGradeUseCase {
         notificationsToCreate.push({
           userId: studentWithParent.parentId,
           title: `${gradeEmoji} Nota do seu Educando — ${subjectName}`,
-          description: `O seu educando ${student.name} recebeu a nota ${dto.value} valores em ${subjectName} (${termLabel}).${dto.value < 10 ? ' Esta nota está abaixo do mínimo. Recomenda-se acompanhamento extra.' : ''}`,
+          description: `Nova nota lançada para o seu educando ${student.name}; ${subjectName}; Tipo: ${typeLabel}; Nota: ${dto.value} valores (${termLabel}).`,
           type: 'nota',
           priority: dto.value < 10 ? 'high' : 'low',
           relatedStudentId: dto.studentId,

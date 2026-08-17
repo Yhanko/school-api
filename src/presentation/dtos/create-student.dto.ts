@@ -44,4 +44,8 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   parentPassword?: string;
+
+  @IsOptional()
+  @IsString()
+  photoUrl?: string;
 }
