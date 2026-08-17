@@ -67,7 +67,14 @@ export class CreateGradeUseCase {
         'MAC': 'Média de Avaliação Contínua',
         'CPP': 'Classificação da Prova do Professor',
         'CPE': 'Classificação da Prova de Escola',
-        'PT': 'Prova Trimestral'
+        'PT': 'Prova Trimestral',
+        'NPT': 'Nota da Prova Trimestral',
+        'EX': 'Exame Final',
+        'NEE': 'Nota do Exame Escrito',
+        'NEP': 'Nota do Exame Prático',
+        'NEO': 'Nota do Exame Oral',
+        'MENC': 'Média do Exame Combinado',
+        'MFD': 'Média Final da Disciplina'
       };
       const typeLabel = typeLabels[dto.type.toUpperCase()] ? `${dto.type.toUpperCase()} – ${typeLabels[dto.type.toUpperCase()]}` : dto.type;
 
