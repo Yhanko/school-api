@@ -119,7 +119,7 @@ export class CreateClassUseCase {
           where: { status: 'active' },
           include: {
             student: {
-              select: { id: true, name: true, email: true }
+              select: { id: true, name: true, email: true, code: true }
             }
           }
         }
@@ -133,7 +133,7 @@ export class CreateClassUseCase {
         id: e.student.id,
         name: e.student.name,
         email: e.student.email,
-        code: null,
+        code: e.student.code,
       })),
     }));
   }
