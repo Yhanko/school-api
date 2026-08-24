@@ -53,6 +53,19 @@ export class CreateSubjectUseCase {
           data: classSubjectData,
           skipDuplicates: true,
         });
+
+        if (dto.teacherId) {
+          for (const cls of matchingClasses) {
+            await this.prisma.class.update({
+              where: { id: cls.id },
+              data: {
+                teachers: {
+                  connect: { id: dto.teacherId }
+                }
+              }
+            });
+          }
+        }
       }
     }
 

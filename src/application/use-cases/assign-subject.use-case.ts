@@ -42,7 +42,19 @@ export class AssignSubjectUseCase {
       }
     });
 
+    if (teacherId) {
+      await this.prisma.class.update({
+        where: { id: classId },
+        data: {
+          teachers: {
+            connect: { id: teacherId }
+          }
+        }
+      });
+    }
+
     return classSubject;
+
   }
 
   async executeRemove(classId: string, subjectId: string, institutionId: string) {
