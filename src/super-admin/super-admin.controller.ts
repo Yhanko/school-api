@@ -29,6 +29,15 @@ export class SuperAdminController {
     return this.superAdminService.createSchool(dto, userId, ipAddress);
   }
 
+  @Put('schools/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN)
+  async updateSchool(@Param('id') id: string, @Body() dto: any, @Req() req: any) {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userId = req.user?.id || req.user?.sub;
+    return this.superAdminService.updateSchool(id, dto, userId, ipAddress);
+  }
+
   @Get('schools')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
@@ -82,7 +91,8 @@ export class SuperAdminController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN)
   async createBroadcast(@Body() body: { message: string, type: string, expiresAt?: string }) {
-    return this.superAdminService.createBroadcast(body.message, body.type, body.expiresAt ? new Date(body.expiresAt) : undefined);
+    const expires = body.expiresAt ? new Date(body.expiresAt) : new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
+    return this.superAdminService.createBroadcast(body.message, body.type, expires);
   }
 
   @Get('health')

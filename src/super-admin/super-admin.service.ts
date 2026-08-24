@@ -119,6 +119,61 @@ export class SuperAdminService {
     });
   }
 
+  async updateSchool(id: string, dto: any, adminId?: string, ipAddress?: string) {
+    const institution = await this.prisma.institution.update({
+      where: { id },
+      data: {
+        name: dto.schoolName,
+        email: dto.schoolEmail,
+        address: dto.schoolAddress,
+        phone: dto.schoolPhone,
+      }
+    });
+
+    if (dto.adminName) {
+      const admin = await this.prisma.user.findFirst({
+         where: { institutionId: id, role: Role.ADMIN }
+      });
+      if (admin) {
+        await this.prisma.user.update({
+           where: { id: admin.id },
+           data: { name: dto.adminName }
+        });
+      }
+    }
+
+    if (dto.planId) {
+       const subscription = await this.prisma.subscription.findFirst({
+         where: { institutionId: id, status: 'active' }
+       });
+       if (subscription) {
+         let plan = await this.prisma.plan.findFirst({ where: { name: dto.planId } });
+         if (!plan) {
+           plan = await this.prisma.plan.findUnique({ where: { id: dto.planId } }).catch(() => null as any);
+         }
+         if (plan) {
+           await this.prisma.subscription.update({
+             where: { id: subscription.id },
+             data: { planId: plan.id }
+           });
+         }
+       }
+    }
+
+    await this.prisma.activityLog.create({
+      data: {
+        action: 'UPDATE_SCHOOL',
+        resource: 'Institution',
+        details: `School ${institution.name} updated.`,
+        institutionId: id,
+        userId: adminId,
+        ipAddress: ipAddress || '127.0.0.1',
+      },
+    });
+
+    return institution;
+  }
+
   async getInstitutionsMetrics() {
     const institutions = await this.prisma.institution.findMany({
       include: {
@@ -619,19 +674,6 @@ export class SuperAdminService {
   async getDebtors() {
     try {
       const debtors = await this.prisma.institution.findMany({
-        where: {
-          OR: [
-            { status: { in: ['payment_restricted', 'suspended', 'blocked'] } },
-            {
-              subscriptions: {
-                some: {
-                  endDate: { lt: new Date() },
-                  status: 'active'
-                }
-              }
-            }
-          ]
-        },
         include: {
           subscriptions: {
             include: {
