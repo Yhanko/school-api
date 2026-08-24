@@ -17,7 +17,7 @@ export class SubjectsController {
   ) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.SECRETARY)
+  @Roles(Role.ADMIN, Role.SECRETARY, Role.PEDAGOGICAL_DIRECTOR)
   createSubject(
     @Body() createSubjectDto: CreateSubjectDto,
     @CurrentUser() user: any,
@@ -26,7 +26,7 @@ export class SubjectsController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.SECRETARY, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.ADMIN, Role.SECRETARY, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.PEDAGOGICAL_DIRECTOR)
   getSubjects(
     @CurrentUser() user: any,
   ) {

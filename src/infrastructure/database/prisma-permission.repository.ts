@@ -57,7 +57,7 @@ export class PrismaPermissionRepository implements IPermissionRepository {
     const users = await this.prisma.user.findMany({
       where: {
         institutionId,
-        role: { in: ['ADMIN', 'SECRETARY', 'TEACHER'] }
+        role: { in: ['ADMIN', 'SECRETARY', 'TEACHER', 'PEDAGOGICAL_DIRECTOR'] }
       },
       select: {
         id: true,
@@ -74,6 +74,18 @@ export class PrismaPermissionRepository implements IPermissionRepository {
       email: u.email,
       role: u.role,
       status: 'Ativo',
+      userPermission: u.userPermission || {
+        dashboard: false,
+        students: false,
+        teachers: false,
+        classes: false,
+        financial: false,
+        activities: false,
+        payments: false,
+        attendance: false,
+        discipline: false,
+        permissions: false,
+      },
       permissions: u.userPermission || {
         dashboard: false,
         students: false,

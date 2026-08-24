@@ -120,6 +120,7 @@ enum Role {
   STUDENT
   PARENT
   ASSOCIATION_MEMBER
+  PEDAGOGICAL_DIRECTOR
 }
 
 model EmployeeProfile {

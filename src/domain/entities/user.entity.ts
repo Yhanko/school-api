@@ -6,6 +6,7 @@ export enum Role {
   STUDENT = 'STUDENT',
   PARENT = 'PARENT',
   ASSOCIATION_MEMBER = 'ASSOCIATION_MEMBER',
+  PEDAGOGICAL_DIRECTOR = 'PEDAGOGICAL_DIRECTOR',
 }
 
 import { EmployeeProfileEntity } from './employee-profile.entity';

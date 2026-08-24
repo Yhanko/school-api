@@ -46,6 +46,7 @@ export class CreateSubjectUseCase {
         const classSubjectData = matchingClasses.map(cls => ({
           classId: cls.id,
           subjectId: createdSubject.id,
+          teacherId: dto.teacherId || undefined,
         }));
 
         await this.prisma.classSubject.createMany({

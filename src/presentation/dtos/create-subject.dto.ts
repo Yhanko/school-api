@@ -18,4 +18,8 @@ export class CreateSubjectDto {
   @IsArray()
   @IsString({ each: true })
   academicLevels?: string[];
+
+  @IsOptional()
+  @IsString()
+  teacherId?: string;
 }
