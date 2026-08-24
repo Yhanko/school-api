@@ -3,6 +3,7 @@ import { FinanceController } from './finance.controller';
 import { FinanceCronService } from './finance.cron';
 import { CreatePaymentUseCase } from '../application/use-cases/create-payment.use-case';
 import { ConfirmPaymentUseCase } from '../application/use-cases/confirm-payment.use-case';
+import { UpdatePaymentStatusUseCase } from '../application/use-cases/update-payment-status.use-case';
 import { GetPaymentsUseCase } from '../application/use-cases/get-payments.use-case';
 import { GetStudentPaymentsUseCase } from '../application/use-cases/get-student-payments.use-case';
 import { SubmitPaymentProofUseCase } from '../application/use-cases/submit-payment-proof.use-case';
@@ -20,6 +21,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     FinanceCronService,
     CreatePaymentUseCase,
     ConfirmPaymentUseCase,
+    UpdatePaymentStatusUseCase,
     GetPaymentsUseCase,
     GetStudentPaymentsUseCase,
     SubmitPaymentProofUseCase,

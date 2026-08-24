@@ -2,6 +2,7 @@ import { Controller, Post, Get, Patch, Body, Param, Query, UseGuards } from '@ne
 import { CreatePaymentDto } from '../presentation/dtos/create-payment.dto';
 import { CreatePaymentUseCase } from '../application/use-cases/create-payment.use-case';
 import { ConfirmPaymentUseCase } from '../application/use-cases/confirm-payment.use-case';
+import { UpdatePaymentStatusUseCase } from '../application/use-cases/update-payment-status.use-case';
 import { GetPaymentsUseCase } from '../application/use-cases/get-payments.use-case';
 import { GetStudentPaymentsUseCase } from '../application/use-cases/get-student-payments.use-case';
 import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
@@ -17,6 +18,7 @@ export class FinanceController {
   constructor(
     private readonly createPaymentUseCase: CreatePaymentUseCase,
     private readonly confirmPaymentUseCase: ConfirmPaymentUseCase,
+    private readonly updatePaymentStatusUseCase: UpdatePaymentStatusUseCase,
     private readonly getPaymentsUseCase: GetPaymentsUseCase,
     private readonly getStudentPaymentsUseCase: GetStudentPaymentsUseCase,
     private readonly submitPaymentProofUseCase: SubmitPaymentProofUseCase,
@@ -48,6 +50,16 @@ export class FinanceController {
     @CurrentUser() user: any,
   ) {
     return this.confirmPaymentUseCase.execute(id, user.institutionId);
+  }
+
+  @Patch('payments/:id/status')
+  @Roles(Role.ADMIN, Role.SECRETARY)
+  updatePaymentStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.updatePaymentStatusUseCase.execute(id, body.status, user.institutionId);
   }
 
   @Get('payments')
