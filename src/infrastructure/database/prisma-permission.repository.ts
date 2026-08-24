@@ -57,7 +57,7 @@ export class PrismaPermissionRepository implements IPermissionRepository {
     const users = await this.prisma.user.findMany({
       where: {
         institutionId,
-        role: { in: ['ADMIN', 'SECRETARY', 'TEACHER', 'PEDAGOGICAL_DIRECTOR'] }
+        role: { in: [Role.ADMIN, Role.SECRETARY, Role.TEACHER, Role.PEDAGOGICAL_DIRECTOR] }
       },
       select: {
         id: true,

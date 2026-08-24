@@ -35,7 +35,7 @@ export class CreateEmployeeUseCase {
     }
 
     // Only allow specific roles to be created by this use case
-    const allowedRoles = [Role.TEACHER, Role.SECRETARY, Role.ADMIN, Role.ASSOCIATION_MEMBER];
+    const allowedRoles = [Role.TEACHER, Role.SECRETARY, Role.ADMIN, Role.ASSOCIATION_MEMBER, Role.PEDAGOGICAL_DIRECTOR];
     if (!allowedRoles.includes(dto.role)) {
       throw new BadRequestException(`Role ${dto.role} is not a valid employee role`);
     }
