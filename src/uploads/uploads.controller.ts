@@ -115,8 +115,9 @@ export class UploadsController {
     }
 
     return new Promise((resolve, reject) => {
+      const resourceType = file.mimetype === 'application/pdf' ? 'raw' : 'auto';
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'profiles', resource_type: 'auto' },
+        { folder: 'profiles', resource_type: resourceType },
         (error, result) => {
           if (error) {
             console.error('[Cloudinary Upload] ERROR:', error);
