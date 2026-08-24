@@ -1,11 +1,11 @@
-import { Injectable, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException, ForbiddenException, Inject } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Role } from '../../domain/entities/user.entity';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private prisma: PrismaService) {
+  constructor(@Inject(PrismaService) private prisma: PrismaService) {
     super();
   }
 
