@@ -2,6 +2,8 @@ import { Controller, Post, Get, Body, Param, UseGuards, Inject } from '@nestjs/c
 import { CreateGradeDto } from '../presentation/dtos/create-grade.dto';
 import { CreateGradeUseCase } from '../application/use-cases/create-grade.use-case';
 import { GetStudentGradesUseCase } from '../application/use-cases/get-student-grades.use-case';
+import { GetClassPautaUseCase } from '../application/use-cases/get-class-pauta.use-case';
+import { GetStudentPautaUseCase } from '../application/use-cases/get-student-pauta.use-case';
 import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '../infrastructure/security/roles.guard';
 import { Roles } from '../infrastructure/security/roles.decorator';
@@ -15,6 +17,8 @@ export class GradesController {
   constructor(
     private readonly createGradeUseCase: CreateGradeUseCase,
     private readonly getStudentGradesUseCase: GetStudentGradesUseCase,
+    private readonly getClassPautaUseCase: GetClassPautaUseCase,
+    private readonly getStudentPautaUseCase: GetStudentPautaUseCase,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -47,6 +51,26 @@ export class GradesController {
     return this.prisma.grade.findMany({
       where: { classId, institutionId: user.institutionId }
     });
+  }
+
+  @Get('pauta/class/:classId/subject/:subjectId')
+  @Roles(Role.ADMIN, Role.TEACHER)
+  async getClassPauta(
+    @Param('classId') classId: string,
+    @Param('subjectId') subjectId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.getClassPautaUseCase.execute(classId, subjectId, user.institutionId);
+  }
+
+  @Get('pauta/student/:studentId/class/:classId')
+  @Roles(Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  async getStudentPauta(
+    @Param('studentId') studentId: string,
+    @Param('classId') classId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.getStudentPautaUseCase.execute(studentId, classId, user.institutionId);
   }
 
   @Post('publish/class/:classId')
