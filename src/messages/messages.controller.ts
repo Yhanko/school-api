@@ -103,11 +103,7 @@ export class MessagesController {
             include: {
               class: {
                 include: {
-                  teachers: true,
-                  enrollments: {
-                    where: { status: 'active' },
-                    include: { student: true }
-                  }
+                  teachers: true
                 }
               }
             }
@@ -120,9 +116,6 @@ export class MessagesController {
         studentData.enrollments.forEach(enr => {
           if (enr.class) {
             enr.class.teachers.forEach(t => allowedUserIds.add(t.id));
-            enr.class.enrollments.forEach(ce => {
-              if (ce.student) allowedUserIds.add(ce.student.id);
-            });
           }
         });
       }
