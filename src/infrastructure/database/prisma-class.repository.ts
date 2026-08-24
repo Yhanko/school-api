@@ -21,7 +21,9 @@ export class PrismaClassRepository implements IClassRepository {
         ),
     );
 
-    const students = model.students?.map(
+    const rawStudents = model.enrollments ? model.enrollments.map((e: any) => e.student) : model.students;
+
+    const students = rawStudents?.map(
       (s: any) =>
         new UserEntity(
           s.id,
@@ -31,6 +33,7 @@ export class PrismaClassRepository implements IClassRepository {
           undefined,
           s.institutionId,
           s.employeeProfile,
+          s.code
         ),
     );
 
