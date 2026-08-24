@@ -11,13 +11,13 @@ export class SupportController {
   constructor(private readonly supportService: SupportService) {}
 
   @Post('tickets')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.PEDAGOGICAL_DIRECTOR, Role.SECRETARY, Role.TEACHER)
   async createTicket(@Request() req: any, @Body() body: any) {
     return this.supportService.createTicket(req.user.institutionId, req.user.sub, body);
   }
 
   @Get('tickets/my')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.PEDAGOGICAL_DIRECTOR, Role.SECRETARY, Role.TEACHER)
   async getMyTickets(@Request() req: any) {
     return this.supportService.getTickets(req.user.institutionId);
   }

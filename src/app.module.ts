@@ -89,7 +89,8 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
     LeadsModule,
     SmsModule,
     EmailModule,
-    WhatsappModule
+    WhatsappModule,
+    SupportModule
   ],
   controllers: [AppController],
   providers: [
