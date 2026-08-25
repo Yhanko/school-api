@@ -21,11 +21,11 @@ export class GenerateFinancialReportUseCase {
 
     for (const p of payments) {
       totalExpected += p.amount;
-      if (p.status === 'pago') {
+      if (p.status === 'pago' || p.status === 'confirmed') {
         totalCollected += p.amount;
-      } else if (p.status === 'pendente') {
+      } else if (p.status === 'pendente' || p.status === 'pending') {
         totalPending += p.amount;
-      } else if (p.status === 'atrasado') {
+      } else if (p.status === 'atrasado' || p.status === 'cancelled') {
         totalOverdue += p.amount;
       }
     }
