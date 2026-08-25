@@ -6,6 +6,7 @@ import { ConfirmPaymentUseCase } from '../application/use-cases/confirm-payment.
 import { UpdatePaymentStatusUseCase } from '../application/use-cases/update-payment-status.use-case';
 import { GetPaymentsUseCase } from '../application/use-cases/get-payments.use-case';
 import { GetStudentPaymentsUseCase } from '../application/use-cases/get-student-payments.use-case';
+import { GetStudentsPaymentOverviewUseCase } from '../application/use-cases/get-students-payment-overview.use-case';
 import { SubmitPaymentProofUseCase } from '../application/use-cases/submit-payment-proof.use-case';
 import { IPaymentRepository } from '../domain/repositories/payment.repository.interface';
 import { PrismaPaymentRepository } from '../infrastructure/database/prisma-payment.repository';
@@ -24,6 +25,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     UpdatePaymentStatusUseCase,
     GetPaymentsUseCase,
     GetStudentPaymentsUseCase,
+    GetStudentsPaymentOverviewUseCase,
     SubmitPaymentProofUseCase,
     {
       provide: IPaymentRepository,

@@ -5,6 +5,7 @@ import { ConfirmPaymentUseCase } from '../application/use-cases/confirm-payment.
 import { UpdatePaymentStatusUseCase } from '../application/use-cases/update-payment-status.use-case';
 import { GetPaymentsUseCase } from '../application/use-cases/get-payments.use-case';
 import { GetStudentPaymentsUseCase } from '../application/use-cases/get-student-payments.use-case';
+import { GetStudentsPaymentOverviewUseCase } from '../application/use-cases/get-students-payment-overview.use-case';
 import { JwtAuthGuard } from '../infrastructure/security/jwt-auth.guard';
 import { RolesGuard } from '../infrastructure/security/roles.guard';
 import { Roles } from '../infrastructure/security/roles.decorator';
@@ -21,6 +22,7 @@ export class FinanceController {
     private readonly updatePaymentStatusUseCase: UpdatePaymentStatusUseCase,
     private readonly getPaymentsUseCase: GetPaymentsUseCase,
     private readonly getStudentPaymentsUseCase: GetStudentPaymentsUseCase,
+    private readonly getStudentsPaymentOverviewUseCase: GetStudentsPaymentOverviewUseCase,
     private readonly submitPaymentProofUseCase: SubmitPaymentProofUseCase,
   ) {}
 
@@ -80,8 +82,12 @@ export class FinanceController {
     @Param('studentId') studentId: string,
     @CurrentUser() user: any,
   ) {
-    // Basic protection: PARENT or STUDENT should only see their own related payments
-    // In a real scenario, you'd check if user.sub === studentId or parent relation
     return this.getStudentPaymentsUseCase.execute(studentId, user.institutionId);
+  }
+
+  @Get('students-overview')
+  @Roles(Role.ADMIN, Role.SECRETARY)
+  getStudentsPaymentOverview(@CurrentUser() user: any) {
+    return this.getStudentsPaymentOverviewUseCase.execute(user.institutionId);
   }
 }
