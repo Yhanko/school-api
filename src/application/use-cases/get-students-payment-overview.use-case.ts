@@ -33,7 +33,12 @@ export class GetStudentsPaymentOverviewUseCase {
     const students = await this.prisma.user.findMany({
       where: { institutionId, role: 'STUDENT' },
       include: {
-        class: { select: { name: true } },
+        enrollments: {
+          include: { class: { select: { name: true, grade: true } } },
+          where: { status: 'active' },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
       orderBy: { name: 'asc' },
     });
@@ -90,8 +95,10 @@ export class GetStudentsPaymentOverviewUseCase {
         studentId:       student.id,
         studentName:     student.name,
         studentEmail:    student.email,
-        studentCode:     (student as any).studentNumber ?? (student as any).code ?? null,
-        className:       (student as any).class?.name ?? null,
+        studentCode:     (student as any).studentNumber ?? student.code ?? null,
+        className:       (student as any).enrollments?.[0]?.class
+                           ? `${(student as any).enrollments[0].class.grade ?? ''} ${(student as any).enrollments[0].class.name}`.trim()
+                           : null,
         payments:        studentPayments.map((p) => ({
           id:            p.id,
           type:          p.type,
