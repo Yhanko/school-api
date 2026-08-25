@@ -21,6 +21,15 @@ export class InstitutionsController {
     return this.createInstitutionUseCase.execute(createInstitutionDto);
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async getMe(@CurrentUser() user: any) {
+    return this.prisma.institution.findUnique({
+      where: { id: user.institutionId },
+    });
+  }
+
   @Patch('me')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
