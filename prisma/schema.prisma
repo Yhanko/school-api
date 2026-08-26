@@ -772,3 +772,39 @@ model GlobalSettings {
   maintenanceMode       Boolean  @default(false)
   updatedAt             DateTime @updatedAt
 }
+
+enum NotificationType {
+  NOTICIA
+  CONCURSO
+  SEMINARIO
+  COMUNICADO
+}
+
+model ScrapedNotification {
+  id           String            @id @default(cuid())
+  title        String
+  summary      String?
+  sourceUrl    String            @unique
+  sourceName   String
+  type         NotificationType
+  publishedAt  DateTime?
+  scrapedAt    DateTime          @default(now())
+  contentHash  String            @unique
+  active       Boolean           @default(true)
+
+  reads        NotificationRead[]
+
+  @@index([type, publishedAt])
+}
+
+model NotificationRead {
+  id             String               @id @default(cuid())
+  notificationId String
+  teacherId      String
+  readAt         DateTime             @default(now())
+
+  notification   ScrapedNotification  @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, teacherId])
+}
+

@@ -40,6 +40,7 @@ import { LeadsModule } from './leads/leads.module';
 import { SmsModule } from './sms/sms.module';
 import { EmailModule } from './email/email.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { ScraperModule } from './modules/scraper/scraper.module';
 
 @Module({
   imports: [
@@ -90,7 +91,8 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
     SmsModule,
     EmailModule,
     WhatsappModule,
-    SupportModule
+    SupportModule,
+    ScraperModule
   ],
   controllers: [AppController],
   providers: [
