@@ -8,11 +8,21 @@ import { MedNoticiasSource } from './sources/med-noticias.source';
 import { MedDocumentosSource } from './sources/med-documentos.source';
 import { MedEventosSource } from './sources/med-eventos.source';
 import { PrismaModule } from '../../prisma/prisma.module'; // Adjust path if needed
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     HttpModule,
     PrismaModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        connection: {
+          url: configService.get('REDIS_URL') || 'redis://localhost:6379',
+        },
+      }),
+      inject: [ConfigService],
+    }),
     BullModule.registerQueue({
       name: 'scraper-queue',
     }),
