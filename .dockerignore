@@ -1,0 +1,63 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies (will be cleanly installed inside Docker)
+node_modules
+npm-packages-offline-semaphore
+
+# Test & Coverage
+test
+coverage
+*.spec.ts
+*.test.ts
+.jest
+
+# Build outputs
+dist
+build
+.turbo
+*.tsbuildinfo
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# IDE & OS files
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Temporary test scripts and dumps
+check-*.js
+parse_test*.js
+test-*.js
+test-*.ts
+test-*.mjs
+test.js
+test.ts
+inst.js
+reset-password.ts
+clear.ts
+seed-academic-year.js
+get-*.js
+med_*.html
+med_robots.txt
+
+# Uploads directory contents (local files shouldn't be baked into the image)
+uploads/*
+!uploads/.gitkeep
