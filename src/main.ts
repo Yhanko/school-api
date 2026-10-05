@@ -15,6 +15,9 @@ import { json, urlencoded } from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Enable graceful shutdown hooks for dumb-init, Prisma, and Redis/BullMQ
+  app.enableShutdownHooks();
+
   // Security Headers
   app.use(helmet());
 
