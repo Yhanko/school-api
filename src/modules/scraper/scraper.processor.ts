@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service'; // Adjust path if needed
@@ -12,6 +12,11 @@ export class ScraperProcessor extends WorkerHost {
 
   constructor(private readonly prisma: PrismaService) {
     super();
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error) {
+    this.logger.warn(`[BullMQ Worker] Alerta de conexão Redis: ${error.message}`);
   }
 
   async process(job: Job<ScrapedItem>): Promise<void> {

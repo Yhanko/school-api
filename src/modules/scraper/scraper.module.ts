@@ -9,6 +9,7 @@ import { MedDocumentosSource } from './sources/med-documentos.source';
 import { MedEventosSource } from './sources/med-eventos.source';
 import { PrismaModule } from '../../prisma/prisma.module'; // Adjust path if needed
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { getBullConfig } from '../../infrastructure/redis/redis.config';
 
 @Module({
   imports: [
@@ -16,11 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     PrismaModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        connection: {
-          url: configService.get('REDIS_URL') || 'redis://localhost:6379',
-        },
-      }),
+      useFactory: (configService: ConfigService) => getBullConfig(configService),
       inject: [ConfigService],
     }),
     BullModule.registerQueue({

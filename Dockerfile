@@ -66,7 +66,7 @@ LABEL maintainer="YhankoEduca Team" \
 # Variáveis padrão de ambiente para produção
 ENV NODE_ENV=production \
     PORT=4000 \
-    PRISMA_RUN_MIGRATIONS=false \
+    PRISMA_RUN_MIGRATIONS=true \
     PRISMA_RUN_DB_PUSH=false
 
 WORKDIR /app

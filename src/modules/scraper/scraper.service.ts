@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Cron } from '@nestjs/schedule';
@@ -8,7 +8,7 @@ import { MedDocumentosSource } from './sources/med-documentos.source';
 import { MedEventosSource } from './sources/med-eventos.source';
 
 @Injectable()
-export class ScraperService {
+export class ScraperService implements OnModuleInit {
   private readonly logger = new Logger(ScraperService.name);
   private readonly sources: ScraperSource[];
 
@@ -19,6 +19,12 @@ export class ScraperService {
     private readonly medEventos: MedEventosSource,
   ) {
     this.sources = [this.medNoticias, this.medDocumentos, this.medEventos];
+  }
+
+  onModuleInit() {
+    this.queue.on('error', (err: Error) => {
+      this.logger.warn(`[BullMQ Queue] Alerta de conexão Redis: ${err.message}`);
+    });
   }
 
   // Runs every 6 hours
