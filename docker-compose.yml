@@ -14,34 +14,13 @@ services:
     environment:
       - PORT=4000
       - PRISMA_RUN_MIGRATIONS=${PRISMA_RUN_MIGRATIONS:-true}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - REDIS_PREFIX=${REDIS_PREFIX:-school_api}
-      - REDIS_DB=${REDIS_DB:-1}
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     volumes:
       - school_api_uploads:/app/uploads
     networks:
       - school_network
-
-  redis:
-    image: redis:7-alpine
-    container_name: school_api_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - school_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
   postgres:
     image: postgres:15-alpine
@@ -80,7 +59,6 @@ services:
 volumes:
   postgres_data:
   school_api_uploads:
-  redis_data:
 
 networks:
   school_network:

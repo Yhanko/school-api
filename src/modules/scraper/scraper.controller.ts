@@ -1,13 +1,22 @@
-import { Controller, Get, Patch, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtAuthGuard } from '../../infrastructure/security/jwt-auth.guard';
 import { CurrentUser } from '../../infrastructure/security/current-user.decorator';
 import { NotificationQueryDto } from './dto/notification-query.dto';
+import { ScraperService } from './scraper.service';
 
 @Controller('scraper-notifications')
 @UseGuards(JwtAuthGuard)
 export class ScraperController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly scraperService: ScraperService,
+  ) {}
+
+  @Post('trigger')
+  async triggerScraper() {
+    return this.scraperService.triggerManual();
+  }
 
   @Get()
   async findAll(@Query() query: NotificationQueryDto, @CurrentUser() user: any) {

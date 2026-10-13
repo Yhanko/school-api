@@ -1,52 +1,67 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Queue } from 'bullmq';
-import { InjectQueue } from '@nestjs/bullmq';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { ScraperSource } from './interfaces/scraper-source.interface';
+import { ISites } from './interfaces/site.interface';
 import { MedNoticiasSource } from './sources/med-noticias.source';
 import { MedDocumentosSource } from './sources/med-documentos.source';
 import { MedEventosSource } from './sources/med-eventos.source';
 
+/**
+ * BOTScrapy - Orquestrador de Web Scraping
+ * Inspirado e espelhado na arquitetura do coins-api.
+ *
+ * Itera pelos sites cadastrados, executa 'scrapy()', e em caso de sucesso
+ * chama diretamente 'saveDatas()', com logs descritivos e sem depender de Redis/filas externas.
+ */
 @Injectable()
-export class ScraperService implements OnModuleInit {
-  private readonly logger = new Logger(ScraperService.name);
-  private readonly sources: ScraperSource[];
+export class ScraperService {
+  private readonly objectId: string = 'bot_scrapy';
+  private readonly logger = new Logger('BOTScrapy');
+  private readonly sites: ISites[];
 
   constructor(
-    @InjectQueue('scraper-queue') private readonly queue: Queue,
     private readonly medNoticias: MedNoticiasSource,
     private readonly medDocumentos: MedDocumentosSource,
     private readonly medEventos: MedEventosSource,
   ) {
-    this.sources = [this.medNoticias, this.medDocumentos, this.medEventos];
+    this.sites = [this.medNoticias, this.medDocumentos, this.medEventos];
   }
 
-  onModuleInit() {
-    this.queue.on('error', (err: Error) => {
-      this.logger.warn(`[BullMQ Queue] Alerta de conexão Redis: ${err.message}`);
-    });
-  }
-
-  // Runs every 6 hours
+  /**
+   * Execução periódica agendada a cada 6 horas (equivalente ao scheduler do coins-api).
+   */
   @Cron('0 */6 * * *')
-  async runAll() {
-    this.logger.log('Starting scheduled scraping job...');
-    for (const source of this.sources) {
+  async runScrapy(): Promise<void> {
+    this.logger.log('Starting BOTScrappy...');
+
+    for (const site of this.sites) {
       try {
-        this.logger.log(`Fetching from source: ${source.name}`);
-        const items = await source.fetch();
-        
-        if (items.length > 0) {
-          await this.queue.addBulk(
-            items.map((item) => ({ name: 'process-item', data: item })),
-          );
-          this.logger.log(`Queued ${items.length} items from ${source.name}`);
+        this.logger.log(`Starting scraping for ${site.objectId}`);
+        const result: boolean = await site.scrapy();
+
+        if (result) {
+          await site.saveDatas();
+          this.logger.log(`Scraping succeeded for ${site.objectId}`);
         } else {
-          this.logger.log(`No items found from ${source.name}`);
+          this.logger.warn(`Scraping returned false for ${site.objectId}`);
         }
-      } catch (err) {
-        this.logger.error(`Failed on source ${source.name}`, err.stack);
+      } catch (error) {
+        this.logger.error(`Error when scraping ${site.url} - Error: ${error.message}`);
       }
     }
+
+    this.logger.log('Finished scraping for all sites.');
+  }
+
+  /**
+   * Disparo manual do BOTScrapy (útil para testes ou chamadas via API).
+   */
+  async triggerManual(): Promise<{ success: boolean; message: string }> {
+    this.runScrapy().catch((err) => {
+      this.logger.error(`Erro no BOTScrapy manual: ${err.message}`);
+    });
+    return {
+      success: true,
+      message: 'BOTScrapy iniciado em background.',
+    };
   }
 }

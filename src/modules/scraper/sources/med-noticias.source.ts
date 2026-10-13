@@ -1,47 +1,54 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import * as cheerio from 'cheerio';
-import { ScrapedItem, ScraperSource } from '../interfaces/scraper-source.interface';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { BaseSite } from './base-site';
 
 @Injectable()
-export class MedNoticiasSource implements ScraperSource {
-  name = 'MED - Notícias';
-  private readonly logger = new Logger(MedNoticiasSource.name);
+export class MedNoticiasSource extends BaseSite {
+  readonly objectId: string = 'Scraper_MED_Noticias';
+  readonly url: string = 'https://www.med.gov.ao/web/noticias';
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    prisma: PrismaService,
+  ) {
+    super(prisma, MedNoticiasSource.name);
+  }
 
-  async fetch(): Promise<ScrapedItem[]> {
+  async scrapy(): Promise<boolean> {
     try {
-      const { data: html } = await this.httpService.axiosRef.get(
-        'https://www.med.gov.ao/web/noticias',
-        { headers: { 'User-Agent': 'YhankoEduca-Bot/1.0 (+contacto@yhanko.ao)' }, timeout: 10000 },
-      );
-      const $ = cheerio.load(html);
-      const items: ScrapedItem[] = [];
+      const { data: html } = await this.httpService.axiosRef.get(this.url, {
+        headers: { 'User-Agent': 'YhankoEduca-Bot/1.0 (+contacto@yhanko.ao)' },
+        timeout: 15000,
+      });
 
-      // A notícia está num <a> que envolve uma div.img-news
+      const $ = cheerio.load(html);
+      this.datasJson = [];
+
       $('.img-news').each((_, el) => {
         const parentLink = $(el).parent('a').attr('href');
         const title = $(el).find('.titlee').text().trim();
-        const dateText = $(el).find('span:contains("b"), b').first().text().trim(); // "19-08-2026"
+        const dateText = $(el).find('span:contains("b"), b').first().text().trim();
         const summary = $(el).find('.titlee + p').text().trim();
 
         if (title && parentLink) {
-          items.push({
+          this.datasJson.push({
             title,
             summary,
             sourceUrl: parentLink.startsWith('http') ? parentLink : `https://www.med.gov.ao${parentLink}`,
-            sourceName: this.name,
+            sourceName: 'MED - Notícias',
             type: 'NOTICIA',
             publishedAt: this.parseAngolanDate(dateText),
           });
         }
       });
 
-      return items;
+      this.logger.log(`[${this.objectId}]: ${this.datasJson.length} itens extraídos.`);
+      return true;
     } catch (error) {
-      this.logger.error(`Error fetching MED noticias: ${error.message}`);
-      return [];
+      this.logger.error(`[${this.objectId}]: Erro ao raspar ${this.url}: ${error.message}`);
+      return false;
     }
   }
 
