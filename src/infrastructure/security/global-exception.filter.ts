@@ -23,9 +23,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = typeof responseData === 'string' ? responseData : (responseData as any).message || responseData;
     }
 
-    // Hide stack trace and genericize message for Internal Server Errors (500)
+    // Hide stack trace and genericize message for Internal Server Errors (500) only in production
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
-       message = 'Ocorreu um erro inesperado no servidor. Por favor, tente novamente mais tarde.';
+      if (process.env.NODE_ENV === 'production') {
+        message = 'Ocorreu um erro inesperado no servidor. Por favor, tente novamente mais tarde.';
+      } else {
+        const errorDetail = (exception as any)?.message || (exception as any)?.meta?.table || 'Erro desconhecido';
+        message = `Erro interno no servidor: ${errorDetail}`;
+      }
     }
 
     response.status(status).json({
